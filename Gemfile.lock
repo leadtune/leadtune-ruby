@@ -8,21 +8,21 @@ GEM
     activesupport (3.0.0)
     builder (2.1.2)
     columnize (0.3.1)
-    cucumber (0.7.2)
-      builder (>= 2.1.2)
-      diff-lcs (>= 1.1.2)
-      gherkin (>= 1.0.24)
-      json_pure (>= 1.2.4)
-      term-ansicolor (>= 1.0.4)
+    cucumber (0.8.5)
+      builder (~> 2.1.2)
+      diff-lcs (~> 1.1.2)
+      gherkin (~> 2.1.4)
+      json_pure (~> 1.4.3)
+      term-ansicolor (~> 1.0.4)
     curb (0.7.8)
     curb-fu (0.4.4)
       curb (>= 0.5.4.0)
       rack-test (>= 0.2.0)
     diff-lcs (1.1.2)
-    gherkin (1.0.30)
-      trollop (>= 1.16.2)
+    gherkin (2.1.5)
+      trollop (~> 1.16.2)
     i18n (0.4.1)
-    json (1.4.3)
+    json (1.4.6)
     json_pure (1.4.6)
     linecache (0.43)
     rack (1.2.1)
@@ -53,12 +53,12 @@ DEPENDENCIES
   activemodel
   cucumber
   curb-fu
-  json (= 1.4.3)
+  json
   rack
   rake
   rdoc
-  rspec
-  rspec-core
-  rspec-expectations
+  rspec (= 2.0.0.beta.19)
+  rspec-core (= 2.0.0.beta.19)
+  rspec-expectations (= 2.0.0.beta.19)
   rspec-mocks
   ruby-debug

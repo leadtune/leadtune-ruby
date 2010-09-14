@@ -1,17 +1,5 @@
 source :gemcutter
 
-gem "rake"
-gem "cucumber"
-gem "rspec"
-gem "rdoc"
-gem "rspec-core"
-gem "rspec-expectations"
-gem "rspec-mocks"
-gem "json", "1.4.3"
-gem "activemodel"
-gem "curb-fu"
-gem "rack"
-
 unless RUBY_PLATFORM == "java"
   case RUBY_VERSION
   when /^1.9.2/
@@ -20,3 +8,15 @@ unless RUBY_PLATFORM == "java"
     gem "ruby-debug"
   end
 end
+
+gem "rake"
+gem "cucumber"
+gem "rdoc"
+gem "rspec", "2.0.0.beta.19"
+gem "rspec-core", "2.0.0.beta.19"
+gem "rspec-expectations", "2.0.0.beta.19"
+gem "rspec-mocks"
+gem "json"
+gem "activemodel"
+gem "curb-fu"
+gem "rack"

@@ -4,18 +4,36 @@ require "rack"
 describe Leadtune::Seller::Response do
   subject {Leadtune::Seller::Response.new(fake_curb_response)}
 
-  [:email_hash, :decision, :prospect_id, :organization, :event, :created_at].each do |name|
-    it "should have an #{name} method" do
-      subject.respond_to?(name).should be_true
+  context("should respond to") do
+    expected_methods = ["browser_name", "created_at", "decision",
+                        "email_hash", "event", "organization", "prospect_id",]
+
+    expected_methods.each do |name|
+      it "##{name}" do
+        subject.should respond_to(name)
+      end
     end
   end
 
-  it "should have an appraisal" do
-    subject.appraisals.size.should == 1
+  describe "#appraisals" do
+    subject {Leadtune::Seller::Response.new(fake_curb_response).appraisals}
+    it {should_not be_empty}
+
+    it "should list non-duplicates" do
+      subject.non_duplicates.should include({"target_buyer" => "TB-LOL", "value" => 1})
+    end
   end
 
-  it "should have an event of \"offers_prepared\"" do
-    subject.event.should == "offers_prepared"
+  describe "#event" do
+    subject {Leadtune::Seller::Response.new(fake_curb_response).event}
+    it {should == "offers_prepared"}
+  end
+
+  describe "#factors" do
+    subject {Leadtune::Seller::Response.new(fake_curb_response).factors}
+
+    it {should_not include("decision")}
+    it {should include("browser_name")}
   end
 
 
@@ -25,6 +43,7 @@ describe Leadtune::Seller::Response do
     mock(:body => {:event => "offers_prepared",
                    :organization => "LOL",
                    :created_at => Time.now,
+                   :browser_name => "Firefox",
                    :email_hash => "deadbeef",
                    :decision => {
                      :appraisals => [{:target_buyer => "TB-LOL", :value => 1},],
