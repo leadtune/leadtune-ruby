@@ -26,11 +26,12 @@ describe Leadtune::Seller do
     subject.should be_valid
   end
 
-  ["decision", "event", "organization",].each do |field|
+  ["decision", "event", "organization", "username", "password",].each do |field|
     it "should be invalid without an #{field}" do
       subject.send("#{field}=", nil)
 
       subject.should_not be_valid
+      subject.errors[field].should_not be_empty
     end
   end
 
@@ -38,6 +39,7 @@ describe Leadtune::Seller do
     subject.email = subject.email_hash = nil
 
     subject.should_not be_valid
+    subject.errors[:base].any? {|x| /email or email_hash/ === x}.should be_true
   end
 
   it "should be valid with an email_hash in place of an email" do
@@ -127,6 +129,7 @@ EOF
       subject.decision = {}
 
       subject.should_not be_valid
+      subject.errors["decision"].should_not be_empty
     end
 
     context("\"target_buyers\" key") do
@@ -140,14 +143,22 @@ EOF
         subject.decision = {"foo" => ["bar", "baz"]}
 
         subject.should_not be_valid
+        subject.errors["decision"].should_not be_empty
       end
 
       it "must be enumerable" do 
         subject.decision = {"target_buyer" => 0}
 
         subject.should_not be_valid
+        subject.errors["decision"].should_not be_empty
       end
     end
+  end
+
+  describe "#factors" do
+    specify {subject.factors.should include("organization")}
+    specify {subject.factors.should include("browser_family")}
+    specify {subject.factors.should include("browser_version")}
   end
 
   it "should not accept undefined factors" do

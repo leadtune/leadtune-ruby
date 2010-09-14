@@ -13,7 +13,7 @@ module Leadtune
           validate :email_or_email_hash_required, :validate_decision
 
           def validate_decision
-            return unless @decision
+            return if @decision.nil?
 
             if @decision.empty?
               errors.add(:decision, "must not be empty")

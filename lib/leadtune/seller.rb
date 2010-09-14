@@ -28,14 +28,15 @@ module Leadtune
   #  require "rubygems"
   #  require "leadtune/seller"
   #
-  #  seller = Leadtune::Seller.new
-  #  seller.event = "offers_prepared"                           # required
-  #  seller.organization = "LOL"                                # required
-  #  seller.email = "test@example.com"                          # required
-  #  seller.decision = {"target_buyers" => ["TB-LOL", "AcmeU"]} # required
-  #  seller.username = "admin@loleads.com"                      # required
-  #  seller.password = "secret"                                 # required
-  #  ... include other factors here, see http://leadtune.com/factors for details
+  #  seller = Leadtune::Seller.new do |s|
+  #    s.event = "offers_prepared"                           # required
+  #    s.organization = "LOL"                                # required
+  #    s.email = "test@example.com"                          # required
+  #    s.decision = {"target_buyers" => ["TB-LOL", "AcmeU"]} # required
+  #    s.username = "admin@loleads.com"                      # required
+  #    s.password = "secret"                                 # required
+  #    ... include other factors here, see #factors or http://leadtune.com/factors for details
+  #  end
   #  response = seller.post
   #
   # == Authentication
@@ -59,30 +60,31 @@ module Leadtune
   # 
   # Your username and password can be specified in the
   # +LEADTUNE_SELLER_USERNAME+ and +LEADTUNE_SELLER_PASSWORD+ environment
-  # variables.  _These values take precedence over values read from a
-  # configuration file._
+  # variables. <em>These values take precedence over values read from a
+  # configuration file.</em>
   #
-  # === Methods
+  # === Instance Methods
   #
   # You can also set your username and password by calling the
-  # Leadtune::Seller object's #username and #password methods.  _These values
-  # take precedence over values read from environment variables, or a
-  # configuration file._
+  # Leadtune::Seller object's <tt>\#username</tt> and <tt>\#password</tt>
+  # methods. <em>These values take precedence over values read from
+  # environment variables, or a configuration file.</em>
+  #
+  # == Dynamic Factor Access
+  #
+  # Getter and setter methods are dynamically defined for each possible factor
+  # that can be specified.  To see a list of dynically defined factors, one
+  # can call the #factors method.
   class Seller
     include Validations
 
     attr_accessor :decision, :username, :password #:nodoc:
 
-    # +config_file+ can be a filename or a file-like object pointing to a YAML
-    # file which can include the following keys:
+    # Initialize a new Leadtune::Seller object.  
     #
-    # * username
-    # * password
-    #
-    # The config file will be read at initialization, but is overwritten by
-    # values specified in the environment, or when manually set using the
-    # #username or #password methods.
-    def initialize(config_file=nil)
+    # [+config_file+] An optional filename or a file-like object, see
+    #                 Authentication above.
+    def initialize(config_file=nil, &block)
       @factors = {}
       @decision = nil
       @config = {}
@@ -91,28 +93,43 @@ module Leadtune
       load_config_file(config_file)
       load_authentication
       load_factors
+
+      block.call(self) if block_given?
     end
 
     # Post this lead to the LeadTune Appraiser service.
     # 
     # Return a Response object.
     def post
+      throw_post_error unless run_validations!
       CurbFu::debug = true if :sandbox == @environment
-      run_validations!
-      response = CurbFu.post(post_options, 
-                             @factors.merge(:decision => @decision).to_json)
-      Response.new(response)
+      Response.new(CurbFu.post(post_options, 
+                               @factors.merge(:decision => @decision).to_json))
+    end
+
+    # Return an array of the factors which can be specified.
+    def factors
+      @@factors
+    end
+
+    # Override the normal URL
+    def leadtune_seller_url=(url) #:nodoc:
+      @leadtune_seller_url = url
     end
 
 
     private 
 
-    def headers
+    def throw_post_error #:nodoc:
+      raise RuntimeError.new(errors.full_messages.inspect) 
+    end
+
+    def headers #:nodoc:
       {"Content-Type" => "application/json",
        "Accept" => "application/json",}
     end
 
-    def post_options
+    def post_options #:nodoc:
       uri = URI::parse(leadtune_url)
       {:protocol => uri.scheme,
        :username => username,
@@ -126,6 +143,8 @@ module Leadtune
     def self.load_factors(file=default_factors_file) #:nodoc:
       factors = YAML::load(file)
       factors.each do |factor|
+        @@factors << factor["code"]
+
         define_method(factor["code"].to_sym) do
           @factors[factor["code"]]
         end
@@ -187,8 +206,11 @@ module Leadtune
       @@factors_loaded = true
     end
 
-    def leadtune_url(environment) #:nodoc:
-      ENV["LEADTUNE_SELLER_URL"] || @config["leadtune_url"] || LEADTUNE_URLS[@environment]
+    def leadtune_url #:nodoc:
+      @leadtune_seller_url || 
+        ENV["LEADTUNE_SELLER_URL"] || 
+        @config["leadtune_seller_url"] || 
+        LEADTUNE_URLS[@environment]
     end
 
     LEADTUNE_URL_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
@@ -200,6 +222,7 @@ module Leadtune
     }
 
     @@factors_loaded = false
+    @@factors = []
 
   end
 end
