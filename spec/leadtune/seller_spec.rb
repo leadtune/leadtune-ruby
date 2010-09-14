@@ -9,8 +9,9 @@ describe Leadtune::Seller do
     subject.organization = "Foo"
     subject.decision = {"target_buyers" => ["AcmeU", "Bravo", "ConvU",],}
     subject.email = "bar@baz.com"
-    subject.username = "test@foo.com"
-    subject.password = "secret"
+    # don't override if loading from ENV or config_file
+    subject.username ||= "test@foo.com"
+    subject.password ||= "secret"
   end
 
   def mock_server(&block)
@@ -45,6 +46,80 @@ describe Leadtune::Seller do
     subject.email = nil
 
     subject.should be_valid
+  end
+
+  context("w/ username & password from config_file") do
+    subject do
+      config_file = StringIO.new <<EOF
+username: config_file@config_file.com
+password: config_file_secret
+EOF
+      Leadtune::Seller.new(config_file)
+    end
+
+    describe "#username" do
+      specify {subject.username.should == "config_file@config_file.com"}
+    end
+
+    describe "#password" do
+      specify {subject.password.should == "config_file_secret"}
+    end
+  end
+
+  context("w/ username & password from ENV") do
+
+    before(:all) do
+      ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
+      ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
+    end
+
+    after(:all) do
+      ENV.delete("LEADTUNE_SELLER_USERNAME")
+      ENV.delete("LEADTUNE_SELLER_PASSWORD")
+    end
+
+    subject {Leadtune::Seller.new}
+
+    describe "#username" do
+      specify {subject.username.should == "env@env.com"}
+    end
+
+    describe "#password" do
+      specify {subject.password.should == "env_secret"}
+    end
+  end
+
+  context("w/ username & password from ENV *AND* config_file") do
+
+    before(:all) do
+      ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
+      ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
+    end
+
+    after(:all) do
+      ENV.delete("LEADTUNE_SELLER_USERNAME")
+      ENV.delete("LEADTUNE_SELLER_PASSWORD")
+    end
+
+    subject do
+      config_file = StringIO.new <<EOF
+username: config_file@config_file.com
+password: config_file_secret
+EOF
+      Leadtune::Seller.new(config_file)
+    end
+
+    describe "#username" do
+      it "should use the ENV value over the config file" do
+        subject.username.should == "env@env.com"
+      end
+    end
+
+    describe "#password" do
+      it "should use the ENV value over the config file" do
+        subject.password.should == "env_secret"
+      end
+    end
   end
 
   context("decision") do

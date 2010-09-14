@@ -40,13 +40,16 @@ module Leadtune
   class Seller
     include Validations
 
-    attr_accessor :decision, :environment, :username, :password #:nodoc:
+    attr_accessor :decision, :username, :password #:nodoc:
 
-    def initialize
+    def initialize(config_file=nil)
       @factors = {}
       @decision = nil
+      @config = {}
 
       determine_environment
+      load_config_file(config_file)
+      load_authentication
       load_factors
     end
 
@@ -54,25 +57,31 @@ module Leadtune
     # 
     # Return a Response object.
     def post
-      CurbFu::debug = true if :sandbox == determine_environment
+      CurbFu::debug = true if :sandbox == @environment
       run_validations!
-      headers = {"Content-Type" => "application/json",
-                 "Accept" => "application/json",}
-      uri = URI::parse(ENVIRONMENTS[@environment])
-      data = @factors.merge(:decision => @decision).to_json
-      response = CurbFu.post({:protocol => uri.scheme,
-                              :username => username,
-                              :password => password,
-                              :headers => headers,
-                              :host => uri.host,
-                              :port => uri.port,
-                              :path => "/prospects",},
-                             data)
+      response = CurbFu.post(post_options, 
+                             @factors.merge(:decision => @decision).to_json)
       Response.new(response)
     end
 
 
     private 
+
+    def headers
+      {"Content-Type" => "application/json",
+       "Accept" => "application/json",}
+    end
+
+    def post_options
+      uri = URI::parse(leadtune_url)
+      {:protocol => uri.scheme,
+       :username => username,
+       :password => password,
+       :headers => headers,
+       :host => uri.host,
+       :port => uri.port,
+       :path => "/prospects",}
+    end
 
     def self.load_factors(file=default_factors_file) #:nodoc:
       factors = YAML::load(file)
@@ -91,14 +100,46 @@ module Leadtune
       File.open("/Users/ewollesen/src/uber/site/db/factors.yml") # FIXME: magic
     end
 
+    def load_config_file(config_file) #:nodoc:
+      find_config_file(config_file)
+
+      if @config_file
+        @config = YAML::load(@config_file)
+      end
+    end
+
+    def find_config_file(config_file) #:nodoc:
+      case config_file
+      when String; @config_file = File.open(config_file)
+      when File, StringIO; @config_file = config_file
+      when nil
+        if File.exist?("leadtune-seller.yml")
+          @config_file = File.open("leadtune-seller.yml")
+        end
+      end
+    end
+
     # TODO: check for other methods to automatically determine environment
     def determine_environment #:nodoc:
-      if ENV.include?("RAILS_ENV") && "production" == ENV["RAILS_ENV"] ||
-          defined?(RAILS_ENV) && "production" == RAILS_ENV
+      if production_detected?
         @environment = :production
       else
         @environment = :sandbox
       end
+    end
+
+    def production_detected? #:nodoc:
+      "production" == ENV["RAILS_ENV"] ||
+        defined?(RAILS_ENV) && "production" == RAILS_ENV
+    end
+
+    def production? #:nodoc:
+      :production == @environment
+    end
+
+    def load_authentication #:nodoc:
+      self.username = ENV["LEADTUNE_SELLER_USERNAME"] || @config["username"]
+      self.password = ENV["LEADTUNE_SELLER_PASSWORD"] || @config["password"]
     end
 
     def load_factors #:nodoc:
@@ -106,9 +147,16 @@ module Leadtune
       @@factors_loaded = true
     end
 
-    ENVIRONMENTS = {
-      #:production => "https://appraiser.leadtune.com",
-      :sandbox => "https://sandbox-appraiser.leadtune.com",
+    def leadtune_url(environment) #:nodoc:
+      ENV["LEADTUNE_SELLER_URL"] || @config["leadtune_url"] || LEADTUNE_URLS[@environment]
+    end
+
+    LEADTUNE_URL_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
+    LEADTUNE_URL_PRODUCTION = "https://appraiser.leadtune.com".freeze
+
+    LEADTUNE_URLS = {
+      #:production => LEADTUNE_URL_PRODUCTION,
+      :sandbox => LEADTUNE_URL_SANDBOX,
     }
 
     @@factors_loaded = false
