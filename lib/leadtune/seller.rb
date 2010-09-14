@@ -37,11 +37,33 @@ module Leadtune
   #  seller.password = "secret"                                 # required
   #  ... include other factors here, see http://leadtune.com/factors for details
   #  response = seller.post
+  #
+  # == Authentication
+  # You may specify your username and password by any of the following methods:
+  # * config_file -- See #new
+  # * ENV values -- +username+ is read from
+  #   <tt>ENV["LEADTUNE_SELLER_USERNAME"]</tt>, while +password+ is read from
+  #   <tt>ENV["LEADTUNE_SELLER_PASSWORD"]</tt>.
+  # * the #username and #password methods
+  #
+  # Each successive method takes precendence over the preceeding methods, so
+  # if you use a config file, you can override the values specified therein by
+  # either setting the appropriate environment variables, or by using the
+  # #username and #password methods on the Seller object.
   class Seller
     include Validations
 
     attr_accessor :decision, :username, :password #:nodoc:
 
+    # +config_file+ can be a filename or a file-like object pointing to a YAML
+    # file which can include the following keys:
+    #
+    # * username
+    # * password
+    #
+    # The config file will be read at initialization, but is overwritten by
+    # values specified in the environment, or when manually set using the
+    # #username or #password methods.
     def initialize(config_file=nil)
       @factors = {}
       @decision = nil
