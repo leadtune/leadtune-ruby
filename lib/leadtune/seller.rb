@@ -39,17 +39,35 @@ module Leadtune
   #  response = seller.post
   #
   # == Authentication
-  # You may specify your username and password by any of the following methods:
-  # * config_file -- See #new
-  # * ENV values -- +username+ is read from
-  #   <tt>ENV["LEADTUNE_SELLER_USERNAME"]</tt>, while +password+ is read from
-  #   <tt>ENV["LEADTUNE_SELLER_PASSWORD"]</tt>.
-  # * the #username and #password methods
   #
-  # Each successive method takes precendence over the preceeding methods, so
-  # if you use a config file, you can override the values specified therein by
-  # either setting the appropriate environment variables, or by using the
-  # #username and #password methods on the Seller object.
+  # Authentication credentials can be specified in several methods, as
+  # detailed below:
+  #
+  # === Configuration File
+  #
+  # The configuration file can be specified when calling #new.  If no file is
+  # specified, the gem will also look for +leadtune-seller.yml+ in the current
+  # directory.
+  #
+  # ==== Format
+  # 
+  # The configuration file is a YAML file, an example of which is:
+  #  username: me@mycorp.com
+  #  password: my_secret
+  #
+  # === Environment Variables
+  # 
+  # Your username and password can be specified in the
+  # +LEADTUNE_SELLER_USERNAME+ and +LEADTUNE_SELLER_PASSWORD+ environment
+  # variables.  _These values take precedence over values read from a
+  # configuration file._
+  #
+  # === Methods
+  #
+  # You can also set your username and password by calling the
+  # Leadtune::Seller object's #username and #password methods.  _These values
+  # take precedence over values read from environment variables, or a
+  # configuration file._
   class Seller
     include Validations
 
