@@ -1,12 +1,7 @@
 require "spec_helper"
 require "rack"
 
-describe Leadtune::Seller::Base do
-  before(:each) do
-    factors_path = "/Users/ewollesen/src/uber/site/db/factors.yml"
-    Leadtune::Seller::Base.load_factors(File.open(factors_path))
-  end
-
+describe Leadtune::Seller do
   describe "#post" do
 
     before(:each) do
@@ -16,8 +11,12 @@ describe Leadtune::Seller::Base do
       subject.email = "foo@bar.com"
     end
 
-    def body_server
-      proc {|env| [200, {}, env["rack.input"].read]}
+    def mock_server(&block)
+      proc do |env|
+        body = env["rack.input"].read
+        yield(JSON::parse(body)) if block_given?
+        [200, {}, body,]
+      end
     end
 
     ["event", "organization", "decision"].each do |field|
@@ -33,18 +32,19 @@ describe Leadtune::Seller::Base do
     end
 
     it "should convert factors to JSON" do
-      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => body_server}
-      post_body = JSON::parse(subject.post.body)
-      ["event", "organization", "decision"].each do |key|
-        post_body.should include(key), post_body
-      end
+      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => mock_server do |body|
+          ["event", "organization", "decision"].each do |key|
+            body.should include(key), body
+          end
+        end
+      }
     end
 
     it "should pass on additional factors" do
-      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => body_server}
-      subject.channel = "banner"
-      post_body = JSON::parse(subject.post.body)
-      post_body.should include("channel"), post_body
+      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => mock_server do |body|
+          body.should include("channel"), body
+        end
+      }
     end
 
     it "should not accept undefined factors" do
