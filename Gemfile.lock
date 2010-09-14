@@ -1,6 +1,11 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    activemodel (3.0.0)
+      activesupport (= 3.0.0)
+      builder (~> 2.1.2)
+      i18n (~> 0.4.1)
+    activesupport (3.0.0)
     builder (2.1.2)
     columnize (0.3.1)
     cucumber (0.7.2)
@@ -9,11 +14,20 @@ GEM
       gherkin (>= 1.0.24)
       json_pure (>= 1.2.4)
       term-ansicolor (>= 1.0.4)
+    curb (0.7.8)
+    curb-fu (0.4.4)
+      curb (>= 0.5.4.0)
+      rack-test (>= 0.2.0)
     diff-lcs (1.1.2)
     gherkin (1.0.30)
       trollop (>= 1.16.2)
+    i18n (0.4.1)
+    json (1.4.3)
     json_pure (1.4.6)
     linecache (0.43)
+    rack (1.2.1)
+    rack-test (0.5.4)
+      rack (>= 1.0)
     rake (0.8.7)
     rdoc (2.5.11)
     rspec (2.0.0.beta.19)
@@ -36,7 +50,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activemodel
   cucumber
+  curb-fu
+  json (= 1.4.3)
+  rack
   rake
   rdoc
   rspec
