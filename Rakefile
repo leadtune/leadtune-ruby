@@ -12,7 +12,11 @@ require 'cucumber/rake/task'
 
 RSpec::Core::RakeTask.new
 Cucumber::Rake::Task.new
-Rake::RDocTask.new
+Rake::RDocTask.new(:rdoc) do |rd|
+  rd.options << "--exclude=Gemfile"
+  rd.options << "--exclude=Rakefile"
+  rd.options << "--exclude=spec/"
+end
 
 desc 'clobber generated files'
 task :clobber => [:clobber_rdoc,]do
