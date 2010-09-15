@@ -55,6 +55,9 @@ module Leadtune
   # The configuration file is a YAML file, an example of which is:
   #  username: me@mycorp.com
   #  password: my_secret
+  #--
+  #  url: http://localhost:8080
+  #++
   #
   # === Environment Variables
   # 
@@ -75,6 +78,20 @@ module Leadtune
   # Getter and setter methods are dynamically defined for each possible factor
   # that can be specified.  To see a list of dynically defined factors, one
   # can call the #factors method.
+  #
+  # == Automatic Environment Determination
+  #
+  # At startup, the Seller object will attempt to determine your application's
+  # current environment.  If a production environment is detected, the Seller
+  # will post prospects to LeadTune's production URL.  Otherwise prospects
+  # will be posted to LeadTune's sandbox URL.  The environment can be
+  # overriden via the APP_ENV environment variable, which takes precedence
+  # over all other methods.
+  #--
+  # The URL used by the Seller object can be manually overriden via the
+  # LEADTUNE_SELLER_URL environment variable, or the +url+ configuration file
+  # values as well.
+
   class Seller
     include Validations
 
@@ -178,7 +195,6 @@ module Leadtune
       end
     end
 
-    # TODO: check for other methods to automatically determine environment
     def determine_environment #:nodoc:
       if production_detected?
         @environment = :production
@@ -188,8 +204,14 @@ module Leadtune
     end
 
     def production_detected? #:nodoc:
-      "production" == ENV["RAILS_ENV"] ||
-        defined?(RAILS_ENV) && "production" == RAILS_ENV
+      if ENV.include?("APP_ENV")
+        "production" == ENV["APP_ENV"]
+      else
+        defined?(Rails) && Rails.env.production? ||
+          "production" == ENV["RACK_ENV"] ||
+          "production" == ENV["RAILS_ENV"] ||
+          defined?(RAILS_ENV) && "production" == RAILS_ENV
+      end
     end
 
     def production? #:nodoc:
@@ -209,7 +231,7 @@ module Leadtune
     def leadtune_url #:nodoc:
       @leadtune_seller_url || 
         ENV["LEADTUNE_SELLER_URL"] || 
-        @config["leadtune_seller_url"] || 
+        @config["url"] || 
         LEADTUNE_URLS[@environment]
     end
 
