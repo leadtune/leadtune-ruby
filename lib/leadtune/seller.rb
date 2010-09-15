@@ -10,10 +10,9 @@ $LOAD_PATH.unshift dir unless $LOAD_PATH.include?(dir)
 require "ruby-debug"
 require "yaml"
 require "json"
-require "curb-fu"
+require "curb"
 require "uri"
 require File.dirname(__FILE__) + "/../object_extensions"
-require File.dirname(__FILE__) + "/../curbfu_extensions"
 require "webrick"
 
 require "seller/validations"
@@ -122,9 +121,17 @@ module Leadtune
     # Returns a Response object.
     def post
       throw_post_error unless run_validations!
-      CurbFu::debug = true if :sandbox == @environment
-      Response.new(CurbFu.post(post_options, 
-                               @factors.merge(:decision => @decision).to_json))
+
+      options = post_options
+      post = Curl::Easy.new do |post|
+        post.url = URI.join(leadtune_url, "/prospects").to_s
+        post.userpwd = "#{username}:#{password}"
+        post.timeout = 1 # FIXME: magic
+        post.headers = headers
+      end
+      post.post_body = @factors.merge(:decision => @decision).to_json
+      post.http(:post)
+      Response.new(post.body_str.dup)
     end
 
     # Return an array of the factors which can be specified.

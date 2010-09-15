@@ -6,6 +6,8 @@
 
 require "json"
 
+require "seller/response/appraisals"
+
 module Leadtune
   class Seller
 
@@ -32,9 +34,9 @@ module Leadtune
 
     class Response
       
-      def initialize(curb_response) #:notnew:
-        @json = JSON::parse(curb_response.body)
-        @json["decision"]["appraisals"] = Appraisals.new(@json["decision"]["appraisals"])
+      def initialize(json_response) #:notnew:
+        @json = JSON::parse(json_response)
+        wrap_helpers_around_appraisals
       end
 
       # The unique +decision_id+ for this Response.
@@ -70,17 +72,14 @@ module Leadtune
         super || @json.include?(sym.to_s)
       end
 
-      # Extends Array by adding a few convenience methods for find duplicate,
-      # or non-duplicate appraisals.
-      class Appraisals < Array
-        def non_duplicates
-          find_all {|a| 0 < a["value"]}
-        end
+      
+      private
 
-        def duplicates
-          find_all {|a| 0 == a["value"]}
-        end
+      def wrap_helpers_around_appraisals
+        @json["decision"]["appraisals"] = 
+          Appraisals.new(@json["decision"]["appraisals"] || [])
       end
+
     end
 
   end

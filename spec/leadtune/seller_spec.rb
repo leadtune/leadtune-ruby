@@ -162,10 +162,6 @@ EOF
   end
 
   describe "#post" do
-    before(:each) do
-      Leadtune::Seller::Response.stub!(:new)
-    end
-
     it "converts required factors to JSON" do
       expected_factors = {"event" => subject.event,
                           "organization" => subject.organization,
@@ -183,64 +179,23 @@ EOF
       subject.post
     end
 
-    it "times out after x seconds (slow)" do
-      subject.leadtune_seller_url = "http://127.0.0.1:#{THREADED_MOCK_SERVER_PORT}"
+    it "times out after x seconds" do
+      stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects").to_timeout
 
-      threaded_mock_server do
-        lambda {subject.post}.should raise_error(Curl::Err::TimeoutError)
-      end
+      lambda {subject.post}.should raise_error(Curl::Err::TimeoutError)
     end
   end
 
 
   private
 
-  THREADED_MOCK_SERVER_PORT = 9292
-
-  def mock_server(config={}, &block)
-    proc do |env|
-      body = env["rack.input"].read
-      yield(JSON::parse(body)) if block_given?
-      [200, {}, body,]
-    end
-  end
-
-  def threaded_mock_server(&block)
-    quietly do
-      server = WEBrick::HTTPServer.new(:Port => THREADED_MOCK_SERVER_PORT)
-      server.mount_proc("/prospects") do |req, res|
-        sleep 1.1
-        res.body = "hi\n"
-        res['Content-Type'] = "text/html"
-      end
-
-      thread = Thread.new(server) {|s| s.start}
-
-      TCPSocket.wait_for_service_with_timeout({:host => "localhost", 
-                                               :port => THREADED_MOCK_SERVER_PORT, 
-                                               :timeout => 3})
-      block.call
-      server.shutdown
-      thread.join
-    end
-  end
-
-  def quietly(&block)
-    old_stdout = old_stderr = nil
-
-    Tempfile.open("seller_spec") do |tf|
-      old_stdout, $stdout = $stdout, tf
-      old_stderr, $stderr = $stderr, tf
-      block.call(tf)
-    end
-
-    $stdout, $stderr = old_stdout, old_stderr
-  end
 
   def json_factors_should_include(expected_factors)
-    CurbFu.should_receive(:post).with do |_, json|
-      hash_received = JSON::parse(json)
-      hash_received.should include(expected_factors)
+    stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects").
+      to_return do |req|
+      json = JSON::parse(req.body)
+      json.should include(expected_factors)
+      {:body => req.body}
     end
   end
 

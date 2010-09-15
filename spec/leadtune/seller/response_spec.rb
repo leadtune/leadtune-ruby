@@ -40,15 +40,15 @@ describe Leadtune::Seller::Response do
   private
 
   def fake_curb_response
-    mock(:body => {:event => "offers_prepared",
-                   :organization => "LOL",
-                   :created_at => Time.now,
-                   :browser_name => "Firefox",
-                   :email_hash => "deadbeef",
-                   :decision => {
-                     :appraisals => [{:target_buyer => "TB-LOL", :value => 1},],
-                   },
-                   :prospect_id => "deadbeef",}.to_json)
+    {:event => "offers_prepared",
+     :organization => "LOL",
+     :created_at => Time.now,
+     :browser_name => "Firefox",
+     :email_hash => "deadbeef",
+     :decision => {
+       :appraisals => [{:target_buyer => "TB-LOL", :value => 1},],
+     },
+     :prospect_id => "deadbeef",}.to_json
   end
 
 end
