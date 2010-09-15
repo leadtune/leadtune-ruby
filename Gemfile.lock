@@ -43,6 +43,7 @@ GEM
       ruby-debug-base (~> 0.10.3.0)
     ruby-debug-base (0.10.3)
       linecache (>= 0.3)
+    tcpsocket-wait (1.0.0)
     term-ansicolor (1.0.5)
     trollop (1.16.2)
 
@@ -62,3 +63,4 @@ DEPENDENCIES
   rspec-expectations (= 2.0.0.beta.19)
   rspec-mocks
   ruby-debug
+  tcpsocket-wait

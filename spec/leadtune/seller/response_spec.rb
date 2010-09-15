@@ -4,7 +4,7 @@ require "rack"
 describe Leadtune::Seller::Response do
   subject {Leadtune::Seller::Response.new(fake_curb_response)}
 
-  context("should respond to") do
+  context("responds to") do
     expected_methods = ["browser_name", "created_at", "decision",
                         "email_hash", "event", "organization", "prospect_id",]
 
@@ -19,7 +19,7 @@ describe Leadtune::Seller::Response do
     subject {Leadtune::Seller::Response.new(fake_curb_response).appraisals}
     it {should_not be_empty}
 
-    it "should list non-duplicates" do
+    it "lists non-duplicates" do
       subject.non_duplicates.should include({"target_buyer" => "TB-LOL", "value" => 1})
     end
   end

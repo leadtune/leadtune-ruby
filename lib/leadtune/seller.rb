@@ -13,9 +13,12 @@ require "json"
 require "curb-fu"
 require "uri"
 require File.dirname(__FILE__) + "/../object_extensions"
+require File.dirname(__FILE__) + "/../curbfu_extensions"
+require "webrick"
 
 require "seller/validations"
 require "seller/response"
+
 
 module Leadtune
 

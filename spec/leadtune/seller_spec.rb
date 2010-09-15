@@ -1,6 +1,8 @@
 require "digest"
 require "rack"
 require "spec_helper"
+require "tcpsocket-wait"
+require "tempfile"
 
 describe Leadtune::Seller do
 
@@ -9,20 +11,12 @@ describe Leadtune::Seller do
     subject.organization = "Foo"
     subject.decision = {"target_buyers" => ["AcmeU", "Bravo", "ConvU",],}
     subject.email = "bar@baz.com"
-    # don't override if loading from ENV or config_file
+    # use ||= so we won't override if loaded from ENV or config_file
     subject.username ||= "test@foo.com"
     subject.password ||= "secret"
   end
 
-  def mock_server(&block)
-    proc do |env|
-      body = env["rack.input"].read
-      yield(JSON::parse(body)) if block_given?
-      [200, {}, body,]
-    end
-  end
-
-  it "should be valid" do
+  it "has valid defaults" do
     subject.should be_valid
   end
 
@@ -136,7 +130,7 @@ EOF
       it "should be valid" do 
         subject.decision = {"target_buyers" => ["bar", "baz",],}
 
-        subject.should be_valid, "foo #{subject.valid?}"
+        subject.should be_valid
       end
 
       it "must exist" do 
@@ -161,27 +155,93 @@ EOF
     specify {subject.factors.should include("browser_version")}
   end
 
-  it "should not accept undefined factors" do
+  it "rejects undefined factors" do
     lambda do
       subject.my_factor = "foo"
     end.should raise_error(NoMethodError, /my_factor=/)
   end
 
   describe "#post" do
-    it "should convert factors to JSON" do
-      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => mock_server do |body|
-          ["event", "organization", "decision"].each do |key|
-            body.should include(key), body
-          end
-        end
-      }
+    before(:each) do
+      Leadtune::Seller::Response.stub!(:new)
     end
 
-    it "should pass on additional factors" do
-      CurbFu.stubs = {"sandbox-appraiser.leadtune.com" => mock_server do |body|
-          body.should include("channel"), body
-        end
-      }
+    it "converts required factors to JSON" do
+      expected_factors = {"event" => subject.event,
+                          "organization" => subject.organization,
+                          "decision" => subject.decision,}
+      json_factors_should_include(expected_factors)
+
+      subject.post
+    end
+
+    it "converts optional factors to JSON" do
+      subject.channel = "banner"
+      expected_factors = {"channel" => subject.channel,}
+      json_factors_should_include(expected_factors)
+
+      subject.post
+    end
+
+    it "times out after x seconds (slow)" do
+      subject.leadtune_seller_url = "http://127.0.0.1:#{THREADED_MOCK_SERVER_PORT}"
+
+      threaded_mock_server do
+        lambda {subject.post}.should raise_error(Curl::Err::TimeoutError)
+      end
     end
   end
+
+
+  private
+
+  THREADED_MOCK_SERVER_PORT = 9292
+
+  def mock_server(config={}, &block)
+    proc do |env|
+      body = env["rack.input"].read
+      yield(JSON::parse(body)) if block_given?
+      [200, {}, body,]
+    end
+  end
+
+  def threaded_mock_server(&block)
+    quietly do
+      server = WEBrick::HTTPServer.new(:Port => THREADED_MOCK_SERVER_PORT)
+      server.mount_proc("/prospects") do |req, res|
+        sleep 1.1
+        res.body = "hi\n"
+        res['Content-Type'] = "text/html"
+      end
+
+      thread = Thread.new(server) {|s| s.start}
+
+      TCPSocket.wait_for_service_with_timeout({:host => "localhost", 
+                                               :port => THREADED_MOCK_SERVER_PORT, 
+                                               :timeout => 3})
+      block.call
+      server.shutdown
+      thread.join
+    end
+  end
+
+  def quietly(&block)
+    old_stdout = old_stderr = nil
+
+    Tempfile.open("seller_spec") do |tf|
+      old_stdout, $stdout = $stdout, tf
+      old_stderr, $stderr = $stderr, tf
+      block.call(tf)
+    end
+
+    $stdout, $stderr = old_stdout, old_stderr
+  end
+
+  def json_factors_should_include(expected_factors)
+    CurbFu.should_receive(:post).with do |_, json|
+      hash_received = JSON::parse(json)
+      hash_received.should include(expected_factors)
+    end
+  end
+
 end
