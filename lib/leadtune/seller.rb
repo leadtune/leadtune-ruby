@@ -97,7 +97,7 @@ module Leadtune
   class Seller
     include Validations
 
-    attr_accessor :decision, :username, :password #:nodoc:
+    attr_accessor :decision, :username, :password, :timeout #:nodoc:
 
     # Initialize a new Leadtune::Seller object.  
     #
@@ -111,6 +111,7 @@ module Leadtune
       determine_environment
       load_config_file(config_file)
       load_authentication
+      load_timeout
       load_factors
 
       block.call(self) if block_given?
@@ -122,16 +123,9 @@ module Leadtune
     def post
       throw_post_error unless run_validations!
 
-      options = post_options
-      post = Curl::Easy.new do |post|
-        post.url = URI.join(leadtune_url, "/prospects").to_s
-        post.userpwd = "#{username}:#{password}"
-        post.timeout = 1 # FIXME: magic
-        post.headers = headers
-      end
-      post.post_body = @factors.merge(:decision => @decision).to_json
-      post.http(:post)
-      Response.new(post.body_str.dup)
+      curl = build_curl_easy_object
+      curl.http(:post) # raises error or returns true
+      Response.new(curl.body_str)
     end
 
     # Return an array of the factors which can be specified.
@@ -165,17 +159,6 @@ module Leadtune
     def headers #:nodoc:
       {"Content-Type" => "application/json",
        "Accept" => "application/json",}
-    end
-
-    def post_options #:nodoc:
-      uri = URI::parse(leadtune_url)
-      {:protocol => uri.scheme,
-       :username => username,
-       :password => password,
-       :headers => headers,
-       :host => uri.host,
-       :port => uri.port,
-       :path => "/prospects",}
     end
 
     def self.load_factors(file=default_factors_file) #:nodoc:
@@ -244,6 +227,13 @@ module Leadtune
       self.password = ENV["LEADTUNE_SELLER_PASSWORD"] || @config["password"]
     end
 
+    def load_timeout #:nodoc:
+      self.timeout = ENV["LEADTUNE_SELLER_TIMEOUT"] || 
+        @config["timeout"] || 
+        DEFAULT_TIMEOUT
+      self.timeout ? self.timeout = self.timeout.to_i : nil
+    end
+
     def load_factors #:nodoc:
       self.class.load_factors unless @@factors_loaded
       @@factors_loaded = true
@@ -256,6 +246,16 @@ module Leadtune
         LEADTUNE_URLS[@environment]
     end
 
+    def build_curl_easy_object #:nodoc:
+      Curl::Easy.new do |post|
+        post.url = URI.join(leadtune_url, "/prospects").to_s
+        post.userpwd = "#{username}:#{password}"
+        post.timeout = timeout 
+        post.headers = headers
+        post.post_body = @factors.merge(:decision => @decision).to_json
+      end
+    end
+
     LEADTUNE_URL_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
     LEADTUNE_URL_PRODUCTION = "https://appraiser.leadtune.com".freeze
 
@@ -263,6 +263,8 @@ module Leadtune
       #:production => LEADTUNE_URL_PRODUCTION,
       :sandbox => LEADTUNE_URL_SANDBOX,
     }
+
+    DEFAULT_TIMEOUT = 5
 
     @@factors_loaded = false
     @@factors = []

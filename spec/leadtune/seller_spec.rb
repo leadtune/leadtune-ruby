@@ -16,32 +16,37 @@ describe Leadtune::Seller do
     subject.password ||= "secret"
   end
 
-  it "has valid defaults" do
-    subject.should be_valid
-  end
 
-  ["decision", "event", "organization", "username", "password",].each do |field|
-    it "should be invalid without an #{field}" do
-      subject.send("#{field}=", nil)
+  context("is valid") do
+    it "with before(:each) defaults" do
+      subject.should be_valid
+    end
 
-      subject.should_not be_valid
-      subject.errors[field].should_not be_empty
+    it "with an email_hash in place of an email" do
+      # NOTE: This is *not* how email_hash's are computed in production
+      subject.email_hash = Digest::SHA1.hexdigest(subject.email)
+      subject.email = nil
+
+      subject.should be_valid
     end
   end
 
-  it "should be invalid without either an email or an email_hash" do
-    subject.email = subject.email_hash = nil
+  context("is invalid") do
+    ["decision", "event", "organization", "username", "password",].each do |field|
+      it "without a(n) #{field}" do
+        subject.send("#{field}=", nil)
 
-    subject.should_not be_valid
-    subject.errors[:base].any? {|x| /email or email_hash/ === x}.should be_true
-  end
+        subject.should_not be_valid
+        subject.errors[field].should_not be_empty
+      end
+    end
 
-  it "should be valid with an email_hash in place of an email" do
-    # NOTE: This is *not* how email_hash's are computed in production
-    subject.email_hash = Digest::SHA1.hexdigest(subject.email)
-    subject.email = nil
+    it "without either an email or an email_hash" do
+      subject.email = subject.email_hash = nil
 
-    subject.should be_valid
+      subject.should_not be_valid
+      subject.errors[:base].any? {|x| /email or email_hash/ === x}.should be_true
+    end
   end
 
   context("w/ username & password from config_file") do
@@ -106,13 +111,13 @@ EOF
     end
 
     describe "#username" do
-      it "should use the ENV value over the config file" do
+      it "uses the ENV value over the config file" do
         subject.username.should == "env@env.com"
       end
     end
 
     describe "#password" do
-      it "should use the ENV value over the config file" do
+      it "uses the ENV value over the config file" do
         subject.password.should == "env_secret"
       end
     end
@@ -179,11 +184,50 @@ EOF
       subject.post
     end
 
-    it "times out after x seconds" do
-      stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects").to_timeout
+  end
+  describe("#timeout") do
+    it "is passed on to Curl::Easy" do
+      curl = double(Curl::Easy, :body_str => "{}").as_null_object
+      curl.should_receive(:timeout=).with(5)
+      Curl::Easy.stub!(:new).and_yield(curl).and_return(curl)
+      stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects")
 
-      lambda {subject.post}.should raise_error(Curl::Err::TimeoutError)
+      subject.post
     end
+
+    context("by default") do
+      it "is 5" do
+        subject.timeout.should == 5
+      end
+    end
+
+    context("with timeout of 6 in ENV value") do
+      before(:all) do
+        ENV["LEADTUNE_SELLER_TIMEOUT"] = "6"
+      end
+
+      after(:all) do
+        ENV.delete("LEADTUNE_SELLER_TIMEOUT")
+      end
+
+      it "is 6" do
+        subject.timeout.should == 6
+      end
+    end
+
+    context("with timeout of 7 in config_file") do
+      subject do
+        config_file = StringIO.new <<EOF
+timeout: 7
+EOF
+        Leadtune::Seller.new(config_file)
+      end
+
+      it "is 7" do
+        subject.timeout.should == 7
+      end
+    end
+
   end
 
 

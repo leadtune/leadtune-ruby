@@ -76,8 +76,9 @@ module Leadtune
       private
 
       def wrap_helpers_around_appraisals
-        @json["decision"]["appraisals"] = 
-          Appraisals.new(@json["decision"]["appraisals"] || [])
+        appraisals = @json["decision"]["appraisals"] || [] rescue []
+        appraisals = Appraisals.new(appraisals)
+        @json.merge!("decision" => {"appraisals" => appraisals,})
       end
 
     end
