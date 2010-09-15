@@ -1,4 +1,8 @@
 class Object
+
+  # Return true if the given object is non-nil, and, if applicable, non-empty.
+  # Similar to an method of the same name provided by Rails.
+
   def present?
     case self
     when String

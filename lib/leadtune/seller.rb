@@ -89,8 +89,8 @@ module Leadtune
   # over all other methods.
   #--
   # The URL used by the Seller object can be manually overriden via the
-  # LEADTUNE_SELLER_URL environment variable, or the +url+ configuration file
-  # values as well.
+  # LEADTUNE_SELLER_URL environment variable, the +url+ configuration file
+  # value, or the #leadtune_seller_url method as well.
 
   class Seller
     include Validations
@@ -116,7 +116,7 @@ module Leadtune
 
     # Post this lead to the LeadTune Appraiser service.
     # 
-    # Return a Response object.
+    # Returns a Response object.
     def post
       throw_post_error unless run_validations!
       CurbFu::debug = true if :sandbox == @environment
@@ -125,6 +125,17 @@ module Leadtune
     end
 
     # Return an array of the factors which can be specified.
+    #
+    # Each LeadTune recognized factor's name will be returned in this array.
+    # Additionally, each factor is available via getter and setter methods of
+    # the same name on the Response object, e.g. if a call to #factors
+    # includes a factor named +browser_family+, then the Seller object will
+    # have methods named <tt>#browser_family</tt> and
+    # <tt>#browser_family=</tt>.
+    #
+    # See http://leadtune.com/factors for a detailed list of factors and their
+    # accepted values.
+
     def factors
       @@factors
     end
