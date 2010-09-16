@@ -2,9 +2,9 @@
 
 require "rubygems"
 require "curb"
+require "time"
 
-
-c = Curl::Easy.new("http://kill-0.com/does_not_exist")
+c = Curl::Easy.new("http://www.google.com/")
 
 c.on_failure do |curl, code|
   puts "failure!"
@@ -17,4 +17,6 @@ c.on_success do |curl|
   puts "success!"
 end
 
-c.http(:post)
+c.http_post
+puts "*" * 20
+c.http_get

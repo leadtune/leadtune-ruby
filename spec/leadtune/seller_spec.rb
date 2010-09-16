@@ -188,42 +188,19 @@ EOF
       subject.post
     end
 
-    context("when a 404 is returned") do
-      before(:each) do
-        stub_request(:any, /.*leadtune.*/).to_return(:status => 404)
-      end
+    ["401", "404", "500"].each do |code|
+      context("when a #{code} is returned") do
+        before(:each) do
+          stub_request(:any, /.*leadtune.*/).to_return(:status => code.to_i)
+        end
 
-      it "raises a HttpError" do
-        pending do
-          lambda {subject.post}.should raise_error(Leadtune::Seller::HttpError)
+        it "raises a HttpError" do
+          pending "webmock allowing Curb callbacks" do
+            lambda {subject.post}.should raise_error(Leadtune::Seller::HttpError)
+          end
         end
       end
     end
-
-    context("when a 401 is returned") do
-      before(:each) do
-        stub_request(:any, /.*leadtune.*/).to_return(:status => 401)
-      end
-
-      it "raises a HttpError" do
-        pending do
-          subject.post
-        end
-      end
-    end
-
-    context("when a 500 is returned") do
-      before(:each) do
-        stub_request(:any, /.*leadtune.*/).to_return(:status => 500)
-      end
-
-      it "raises a HttpError" do
-        pending do
-          subject.post
-        end
-      end
-    end
-
   end
 
   describe("#timeout") do
