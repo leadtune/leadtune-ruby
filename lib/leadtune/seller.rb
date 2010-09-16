@@ -1,7 +1,7 @@
-# = LeadTune Lead Seller's API Ruby Gem
+# LeadTune API Ruby Gem
 #
-# http://github.com/leadtune/leadtune-seller <br/>
-# Eric Wollesen (mailto:devs@leadtune.com)  <br/>
+# http://github.com/leadtune/leadtune-ruby
+# Eric Wollesen (mailto:devs@leadtune.com)
 # Copyright 2010 LeadTune LLC
 
 dir = File.dirname(__FILE__)
@@ -57,7 +57,7 @@ module Leadtune
   # === Configuration File
   #
   # The configuration file can be specified when calling #new.  If no file is
-  # specified, the gem will also look for +leadtune-seller.yml+ in the current
+  # specified, the gem will also look for +leadtune.yml+ in the current
   # directory.
   #
   # ==== Format
@@ -73,9 +73,9 @@ module Leadtune
   # === Environment Variables
   # 
   # Your username, password, and organization can be specified in the
-  # +LEADTUNE_SELLER_USERNAME+, +LEADTUNE_SELLER_PASSWORD+, and
-  # +LEADTUNE_SELLER_ORGANIZATION+ environment variables. <em>These values
-  # take precedence over values read from a configuration file.</em>
+  # +LEADTUNE_USERNAME+, +LEADTUNE_PASSWORD+, and +LEADTUNE_ORGANIZATION+
+  # environment variables. <em>These values take precedence over values read
+  # from a configuration file.</em>
   #
   # === Instance Methods
   #
@@ -100,8 +100,8 @@ module Leadtune
   # over all other methods.
   #--
   # The host used by the Seller object can be manually overriden via the
-  # LEADTUNE_SELLER_HOST environment variable, the +host+ configuration file
-  # value, or the #leadtune_seller_host method as well.
+  # LEADTUNE_HOST environment variable, the +host+ configuration file value,
+  # or the #leadtune_host method as well.
 
   class Seller
     include Validations
@@ -158,8 +158,8 @@ module Leadtune
     end
 
     # Override the normal host
-    def leadtune_seller_host=(host) #:nodoc:
-      @leadtune_seller_host = host
+    def leadtune_host=(host) #:nodoc:
+      @leadtune_host = host
     end
 
     # Assign an array of organization codes for the prospects target buyers.
@@ -232,8 +232,8 @@ module Leadtune
       when String; @config_file = File.open(config_file)
       when File, StringIO; @config_file = config_file
       when nil
-        if File.exist?("leadtune-seller.yml")
-          @config_file = File.open("leadtune-seller.yml")
+        if File.exist?("leadtune.yml")
+          @config_file = File.open("leadtune.yml")
         end
       end
     end
@@ -262,13 +262,13 @@ module Leadtune
     end
 
     def load_authentication #:nodoc:
-      self.username = ENV["LEADTUNE_SELLER_USERNAME"] || @config["username"]
-      self.password = ENV["LEADTUNE_SELLER_PASSWORD"] || @config["password"]
-      self.organization = ENV["LEADTUNE_SELLER_ORGANIZATION"] || @config["organization"]
+      self.username = ENV["LEADTUNE_USERNAME"] || @config["username"]
+      self.password = ENV["LEADTUNE_PASSWORD"] || @config["password"]
+      self.organization = ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
     end
 
     def load_timeout #:nodoc:
-      self.timeout = ENV["LEADTUNE_SELLER_TIMEOUT"] || 
+      self.timeout = ENV["LEADTUNE_TIMEOUT"] || 
         @config["timeout"] || 
         DEFAULT_TIMEOUT
       self.timeout ? self.timeout = self.timeout.to_i : nil
@@ -280,8 +280,8 @@ module Leadtune
     end
 
     def leadtune_host #:nodoc:
-      @leadtune_seller_host || 
-        ENV["LEADTUNE_SELLER_HOST"] || 
+      @leadtune_host || 
+        ENV["LEADTUNE_HOST"] || 
         @config["host"] || 
         LEADTUNE_HOSTS[@environment]
     end

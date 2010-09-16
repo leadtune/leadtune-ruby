@@ -20,9 +20,10 @@ Rake::RDocTask.new(:rdoc) do |rd|
 end
 
 desc 'clobber generated files'
-task :clobber => [:clobber_rdoc,]do
+task :clobber => [:clobber_rdoc,] do
   rm_rf "pkg"
   rm_rf "tmp"
+  rm_rf "doc"
 end
 
 task :default => [:spec, :cucumber,]

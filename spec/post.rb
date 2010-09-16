@@ -26,7 +26,7 @@ s = Leadtune::Seller.new do |s|
   s.password = "admin"
   s.email = "test@example.com"
   s.decision = {"target_buyers" => ["AcmeU", "Bravo", "ConvU",]}
-  s.leadtune_seller_host = "http://localhost:8080"
+  s.leadtune_host = "http://localhost:8080"
   s.sleep = 20
 end
 s.post

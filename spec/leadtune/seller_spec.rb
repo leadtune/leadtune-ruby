@@ -224,11 +224,11 @@ describe Leadtune::Seller do
 
     context("with timeout of 6 in ENV value") do
       before(:all) do
-        ENV["LEADTUNE_SELLER_TIMEOUT"] = "6"
+        ENV["LEADTUNE_TIMEOUT"] = "6"
       end
 
       after(:all) do
-        ENV.delete("LEADTUNE_SELLER_TIMEOUT")
+        ENV.delete("LEADTUNE_TIMEOUT")
       end
 
       it "is 6" do
@@ -303,15 +303,15 @@ EOF
   end
 
   def setup_leadtune_env
-    ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
-    ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
-    ENV["LEADTUNE_SELLER_ORGANIZATION"] = "env_org"
+    ENV["LEADTUNE_USERNAME"] = "env@env.com"
+    ENV["LEADTUNE_PASSWORD"] = "env_secret"
+    ENV["LEADTUNE_ORGANIZATION"] = "env_org"
   end
 
   def teardown_leadtune_env
-    ENV.delete("LEADTUNE_SELLER_USERNAME")
-    ENV.delete("LEADTUNE_SELLER_PASSWORD")
-    ENV.delete("LEADTUNE_SELLER_ORGANIZATION")
+    ENV.delete("LEADTUNE_USERNAME")
+    ENV.delete("LEADTUNE_PASSWORD")
+    ENV.delete("LEADTUNE_ORGANIZATION")
   end
 
   def leadtune_config_file

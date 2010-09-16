@@ -1,7 +1,7 @@
-# = LeadTune Lead Seller's API Ruby Gem
+# LeadTune API Ruby Gem
 #
-# http://github.com/leadtune/leadtune-seller <br/>
-# Eric Wollesen (mailto:devs@leadtune.com)  <br/>
+# http://github.com/leadtune/leadtune-ruby
+# Eric Wollesen (mailto:devs@leadtune.com)
 # Copyright 2010 LeadTune LLC
 
 require "json"
@@ -12,7 +12,7 @@ module Leadtune
   class Seller
 
     # Simplify the processing of LeadTune duplicate checking and appraisal
-    # resposes.
+    # responses.
     # 
     # For details about the LeadTune Seller API, see:
     # http://leadtune.com/api/seller
