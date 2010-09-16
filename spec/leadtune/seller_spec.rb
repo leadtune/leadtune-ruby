@@ -249,6 +249,33 @@ EOF
 
   end
 
+  describe("#new") do
+    
+    it "receives options in a Hash" do
+      s = Leadtune::Seller.new({:channel => "banner",})
+
+      s.channel.should == "banner"
+    end
+
+    it "silently ignores undefined factors in a Hash" do
+      s = Leadtune::Seller.new({:bad_factor => "muahahaha!",})
+
+      s.should_not respond_to(:bad_factor)
+    end
+
+    it "accepts a config_file as its (optional) first argument" do
+      cf = StringIO.new <<EOF
+username: foo
+password: bar
+EOF
+      s = Leadtune::Seller.new(cf, {:channel => "banner",})
+
+      s.channel.should == "banner"
+      s.username.should == "foo"
+    end
+
+  end
+
 
   private
 

@@ -41,6 +41,14 @@ module Leadtune
   #  end
   #  response = seller.post
   #
+  # <em>Or alternately</em>
+  #
+  #  seller = LeadtuneSeller.new({
+  #    :event => "offers_prepared",
+  #    :organization => "LOL",
+  #    ... and so on
+  #  })
+  #
   # == Authentication
   #
   # Authentication credentials can be specified in several methods, as
@@ -105,13 +113,14 @@ module Leadtune
     #
     # [+config_file+] An optional filename or a file-like object, see
     #                 Authentication above.
-    def initialize(config_file=nil, &block)
+    def initialize(*args, &block)
       @factors = {}
       @decision = nil
       @config = {}
 
       determine_environment
-      load_config_file(config_file)
+      load_options(args.extract_options!)
+      load_config_file(args.first)
       load_authentication
       load_timeout
       load_factors
@@ -181,6 +190,14 @@ module Leadtune
 
     def self.default_factors_file #:nodoc:
       File.open("/Users/ewollesen/src/uber/site/db/factors.yml") # FIXME: magic
+    end
+
+    def load_options(options) #:nodoc:
+      options.each_pair do |key, value|
+        if respond_to?("#{key}=")
+          self.send("#{key}=", value)
+        end
+      end
     end
 
     def load_config_file(config_file) #:nodoc:
@@ -274,6 +291,11 @@ module Leadtune
 
     @@factors_loaded = false
     @@factors = []
+
+    # stolen from ActiveSupport
+    def extract_options!
+      last.is_a?(::Hash) ? pop : {}
+    end
 
   end
 end
