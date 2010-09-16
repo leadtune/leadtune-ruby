@@ -276,9 +276,21 @@ EOF
 
   end
 
+  describe("#target_buyers=") do
+    it "is represented in the decision field of the JSON post body" do
+      subject.target_buyers = ["foo",]
+      json_factors_should_include({"decision" => {"target_buyers" => ["foo"]}})
+
+      subject.post
+    end
+
+    it "raises ArgumentError when called with a non-Array" do
+      lambda {subject.target_buyers = "foo"}.should raise_error(ArgumentError)
+    end
+  end
+
 
   private
-
 
   def json_factors_should_include(expected_factors)
     stub_request(:any, /.*leadtune.*/).to_return do |req|

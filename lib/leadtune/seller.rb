@@ -34,7 +34,7 @@ module Leadtune
   #    s.event = "offers_prepared"                           # required
   #    s.organization = "LOL"                                # required
   #    s.email = "test@example.com"                          # required
-  #    s.decision = {"target_buyers" => ["TB-LOL", "AcmeU"]} # required
+  #    s.target_buyers = ["TB-LOL", "AcmeU",]                # required
   #    s.username = "admin@loleads.com"                      # required
   #    s.password = "secret"                                 # required
   #    ... include other factors here, see #factors or http://leadtune.com/factors for details
@@ -161,6 +161,21 @@ module Leadtune
       @leadtune_seller_url = url
     end
 
+    # Assign an array of organization codes for the prospects target buyers.
+    def target_buyers=(target_buyers)
+      unless target_buyers.is_a?(Array)
+        raise ArgumentError.new("target_buyers must be an Array")
+      end
+
+      @decision = {"target_buyers" => target_buyers}
+    end
+
+    # Return an array of organization codes for the prospects target buyers.
+    def target_buyers
+      @decision ||= {}
+      @decision["target_buyers"] ||= []
+    end
+
 
     private 
 
@@ -175,8 +190,10 @@ module Leadtune
 
     def self.load_factors(file=default_factors_file) #:nodoc:
       factors = YAML::load(file)
-      factors.each do |factor|
+      factors.sort {|x,y| x["code"] <=> y["code"]}.each do |factor|
         @@factors << factor["code"]
+
+        next if instance_methods.include?(factor["code"]) 
 
         define_method(factor["code"].to_sym) do
           @factors[factor["code"]]
