@@ -1,7 +1,7 @@
 require "active_model"
 
 module Leadtune
-  class Seller
+  class Prospect
     module Validations #:nodoc:all
 
       def self.included(base)

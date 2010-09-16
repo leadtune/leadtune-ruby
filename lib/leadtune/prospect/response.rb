@@ -6,10 +6,10 @@
 
 require "json"
 
-require "seller/response/appraisals"
+require "prospect/response/appraisals"
 
 module Leadtune
-  class Seller
+  class Prospect
 
     # Simplify the processing of LeadTune duplicate checking and appraisal
     # responses.
@@ -20,11 +20,11 @@ module Leadtune
     # Inspect your lead's appraisal:
     #
     #  require "rubygems"
-    #  require "leadtune/seller"
+    #  require "leadtune"
     #
-    #  seller = Leadtune::Seller.new
-    #  ... see docs for Leadtune::Seller
-    #  response = seller.post
+    #  prospect = Leadtune::Prospect.new
+    #  ... see docs for Leadtune::Prospect
+    #  response = prospect.post
     #  response.decision_id     # => "4c8f9e1eb34601dd40b3c030"
     #  response.email_hash      # => "823776525776c8f23a87176c59d25759da7a52c4"
     #  response.browser_family  # => "Firefox"

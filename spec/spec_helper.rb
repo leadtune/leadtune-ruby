@@ -1,5 +1,5 @@
 require "rspec"
-require File.dirname(__FILE__) + "/../lib/leadtune/seller"
+require File.dirname(__FILE__) + "/../lib/leadtune"
 
 require 'webmock/rspec'
 

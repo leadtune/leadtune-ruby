@@ -4,7 +4,7 @@ require "spec_helper"
 require "tcpsocket-wait"
 require "tempfile"
 
-describe Leadtune::Seller do
+describe Leadtune::Prospect do
 
   before(:each) do
     subject.event = "offers_prepared"
@@ -51,7 +51,7 @@ describe Leadtune::Seller do
 
   context("w/ username, password, & organization from config_file") do
     subject do
-      Leadtune::Seller.new(leadtune_config_file)
+      Leadtune::Prospect.new(leadtune_config_file)
     end
 
     describe "#username" do
@@ -77,7 +77,7 @@ describe Leadtune::Seller do
       teardown_leadtune_env
     end
 
-    subject {Leadtune::Seller.new}
+    subject {Leadtune::Prospect.new}
 
     describe "#username" do
       specify {subject.username.should == "env@env.com"}
@@ -103,7 +103,7 @@ describe Leadtune::Seller do
     end
 
     subject do
-      Leadtune::Seller.new(leadtune_config_file)
+      Leadtune::Prospect.new(leadtune_config_file)
     end
 
     describe "#username" do
@@ -198,7 +198,7 @@ describe Leadtune::Seller do
 
         it "raises a HttpError" do
           pending "webmock allowing Curb callbacks" do
-            lambda {subject.post}.should raise_error(Leadtune::Seller::HttpError)
+            lambda {subject.post}.should raise_error(Leadtune::Prospect::HttpError)
           end
         end
       end
@@ -241,7 +241,7 @@ describe Leadtune::Seller do
         config_file = StringIO.new <<EOF
 timeout: 7
 EOF
-        Leadtune::Seller.new(config_file)
+        Leadtune::Prospect.new(config_file)
       end
 
       it "is 7" do
@@ -254,13 +254,13 @@ EOF
   describe("#new") do
     
     it "receives options in a Hash" do
-      s = Leadtune::Seller.new({:channel => "banner",})
+      s = Leadtune::Prospect.new({:channel => "banner",})
 
       s.channel.should == "banner"
     end
 
     it "silently ignores undefined factors in a Hash" do
-      s = Leadtune::Seller.new({:bad_factor => "muahahaha!",})
+      s = Leadtune::Prospect.new({:bad_factor => "muahahaha!",})
 
       s.should_not respond_to(:bad_factor)
     end
@@ -270,7 +270,7 @@ EOF
 username: foo
 password: bar
 EOF
-      s = Leadtune::Seller.new(cf, {:channel => "banner",})
+      s = Leadtune::Prospect.new(cf, {:channel => "banner",})
 
       s.channel.should == "banner"
       s.username.should == "foo"

@@ -14,35 +14,35 @@ require "curb"
 require "uri"
 require File.dirname(__FILE__) + "/../object_extensions"
 
-require "seller/validations"
-require "seller/response"
+require "prospect/validations"
+require "prospect/response"
 
 
 module Leadtune
 
-  # Simplify the process of submitting leads to LeadTune for duplicate
+  # Simplify the process of submitting prospects to LeadTune for duplicate
   # checking and appraisal.
   # 
   # For details about the LeadTune Seller API, see:
   # http://leadtune.com/api/seller
   #
   #  require "rubygems"
-  #  require "leadtune/seller"
+  #  require "leadtune"
   #
-  #  seller = Leadtune::Seller.new do |s|
-  #    s.event = "offers_prepared"                           # required
-  #    s.organization = "LOL"                                # required
-  #    s.email = "test@example.com"                          # required
-  #    s.target_buyers = ["TB-LOL", "AcmeU",]                # required
-  #    s.username = "admin@loleads.com"                      # required
-  #    s.password = "secret"                                 # required
+  #  prospect = Leadtune::Prospect.new do |p|
+  #    p.event = "offers_prepared"                           # required
+  #    p.organization = "LOL"                                # required
+  #    p.email = "test@example.com"                          # required
+  #    p.target_buyers = ["TB-LOL", "AcmeU",]                # required
+  #    p.username = "admin@loleads.com"                      # required
+  #    p.password = "secret"                                 # required
   #    ... include other factors here, see #factors or http://leadtune.com/factors for details
   #  end
-  #  response = seller.post
+  #  response = prospect.post
   #
   # <em>Or alternately</em>
   #
-  #  seller = LeadtuneSeller.new({
+  #  prospect = Leadtune::Prospect.new({
   #    :event => "offers_prepared",
   #    :organization => "LOL",
   #    ... and so on
@@ -79,7 +79,7 @@ module Leadtune
   # === Instance Methods
   #
   # You can also set your username, password, and organization by calling the
-  # Leadtune::Seller object's <tt>\#username</tt>, <tt>\#password</tt>, and
+  # Leadtune::Prospect object's <tt>\#username</tt>, <tt>\#password</tt>, and
   # <tt>\#organization</tt> methods. <em>These values take precedence over
   # values read from environment variables, or a configuration file.</em>
   #
@@ -91,25 +91,27 @@ module Leadtune
   #
   # == Automatic Environment Determination
   #
-  # At startup, the Seller object will attempt to determine your application's
-  # current environment.  If a production environment is detected, the Seller
-  # will post prospects to LeadTune's production host.  Otherwise prospects
-  # will be posted to LeadTune's sandbox host.  The environment can be
-  # overriden via the APP_ENV environment variable, which takes precedence
-  # over all other methods.
+  # At initialization, the Prospect class will attempt to determine your
+  # application's current environment.  If a production environment is
+  # detected, the Prospect will post prospects to LeadTune's production host.
+  # Otherwise prospects will be posted to LeadTune's sandbox host.  The
+  # environment can be overriden via the APP_ENV environment variable, which
+  # takes precedence over all other methods.
+  #
   #--
-  # The host used by the Seller object can be manually overriden via the
+  #
+  # The host used by the Prospect object can be manually overriden via the
   # LEADTUNE_HOST environment variable, the +host+ configuration file value,
   # or the #leadtune_host method as well.
 
-  class Seller
+  class Prospect
     include Validations
 
     class HttpError < RuntimeError ; end
 
     attr_accessor :decision, :username, :password, :timeout #:nodoc:
 
-    # Initialize a new Leadtune::Seller object.  
+    # Initialize a new Leadtune::Prospect object.  
     #
     # [+config_file+] An optional filename or a file-like object, see
     #                 Authentication above.
@@ -145,7 +147,7 @@ module Leadtune
     # Each LeadTune recognized factor's name will be returned in this array.
     # Additionally, each factor is available via getter and setter methods of
     # the same name on the Response object, e.g. if a call to #factors
-    # includes a factor named +browser_family+, then the Seller object will
+    # includes a factor named +browser_family+, then the Prospect object will
     # have methods named <tt>#browser_family</tt> and
     # <tt>#browser_family=</tt>.
     #

@@ -1,8 +1,8 @@
 require "spec_helper"
 require "rack"
 
-describe Leadtune::Seller::Response do
-  subject {Leadtune::Seller::Response.new(fake_curb_response)}
+describe Leadtune::Prospect::Response do
+  subject {Leadtune::Prospect::Response.new(fake_curb_response)}
 
   context("responds to") do
     expected_methods = ["browser_name", "created_at", "decision",
@@ -16,7 +16,7 @@ describe Leadtune::Seller::Response do
   end
 
   describe "#appraisals" do
-    subject {Leadtune::Seller::Response.new(fake_curb_response).appraisals}
+    subject {Leadtune::Prospect::Response.new(fake_curb_response).appraisals}
     it {should_not be_empty}
 
     it "lists non-duplicates" do
@@ -25,12 +25,12 @@ describe Leadtune::Seller::Response do
   end
 
   describe "#event" do
-    subject {Leadtune::Seller::Response.new(fake_curb_response).event}
+    subject {Leadtune::Prospect::Response.new(fake_curb_response).event}
     it {should == "offers_prepared"}
   end
 
   describe "#factors" do
-    subject {Leadtune::Seller::Response.new(fake_curb_response).factors}
+    subject {Leadtune::Prospect::Response.new(fake_curb_response).factors}
 
     it {should_not include("decision")}
     it {should include("browser_name")}
