@@ -13,7 +13,6 @@ require "json"
 require "curb"
 require "uri"
 require File.dirname(__FILE__) + "/../object_extensions"
-require "webrick"
 
 require "seller/validations"
 require "seller/response"
