@@ -67,7 +67,7 @@ module Leadtune
   #  password: my_secret
   #  organization: MYC
   #--
-  #  url: http://localhost:8080
+  #  host: http://localhost:8080
   #++
   #
   # === Environment Variables
@@ -94,14 +94,14 @@ module Leadtune
   #
   # At startup, the Seller object will attempt to determine your application's
   # current environment.  If a production environment is detected, the Seller
-  # will post prospects to LeadTune's production URL.  Otherwise prospects
-  # will be posted to LeadTune's sandbox URL.  The environment can be
+  # will post prospects to LeadTune's production host.  Otherwise prospects
+  # will be posted to LeadTune's sandbox host.  The environment can be
   # overriden via the APP_ENV environment variable, which takes precedence
   # over all other methods.
   #--
-  # The URL used by the Seller object can be manually overriden via the
-  # LEADTUNE_SELLER_URL environment variable, the +url+ configuration file
-  # value, or the #leadtune_seller_url method as well.
+  # The host used by the Seller object can be manually overriden via the
+  # LEADTUNE_SELLER_HOST environment variable, the +host+ configuration file
+  # value, or the #leadtune_seller_host method as well.
 
   class Seller
     include Validations
@@ -157,9 +157,9 @@ module Leadtune
       @@factors
     end
 
-    # Override the normal URL
-    def leadtune_seller_url=(url) #:nodoc:
-      @leadtune_seller_url = url
+    # Override the normal host
+    def leadtune_seller_host=(host) #:nodoc:
+      @leadtune_seller_host = host
     end
 
     # Assign an array of organization codes for the prospects target buyers.
@@ -279,16 +279,16 @@ module Leadtune
       @@factors_loaded = true
     end
 
-    def leadtune_url #:nodoc:
-      @leadtune_seller_url || 
-        ENV["LEADTUNE_SELLER_URL"] || 
-        @config["url"] || 
-        LEADTUNE_URLS[@environment]
+    def leadtune_host #:nodoc:
+      @leadtune_seller_host || 
+        ENV["LEADTUNE_SELLER_HOST"] || 
+        @config["host"] || 
+        LEADTUNE_HOSTS[@environment]
     end
 
     def build_curl_easy_object #:nodoc:
       Curl::Easy.new do |curl|
-        curl.url = URI.join(leadtune_url, "/prospects").to_s
+        curl.url = URI.join(leadtune_host, "/prospects").to_s
         curl.userpwd = "#{username}:#{password}"
         curl.timeout = timeout 
         curl.headers = headers
@@ -299,12 +299,12 @@ module Leadtune
       end
     end
 
-    LEADTUNE_URL_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
-    LEADTUNE_URL_PRODUCTION = "https://appraiser.leadtune.com".freeze
+    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
+    LEADTUNE_HOST_PRODUCTION = "https://appraiser.leadtune.com".freeze
 
-    LEADTUNE_URLS = {
-      #:production => LEADTUNE_URL_PRODUCTION,
-      :sandbox => LEADTUNE_URL_SANDBOX,
+    LEADTUNE_HOSTS = {
+      :production => LEADTUNE_HOST_PRODUCTION,
+      :sandbox => LEADTUNE_HOST_SANDBOX,
     }
 
     DEFAULT_TIMEOUT = 5
