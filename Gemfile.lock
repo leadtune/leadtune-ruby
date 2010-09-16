@@ -1,6 +1,6 @@
 GIT
-  remote: http://github.com/phiggins/webmock.git
-  revision: ca04466874f254379ae929654ccac938dfc59e74
+  remote: http://github.com/leadtune/webmock.git
+  revision: 916d93d1551786a3cf89daf424be25239268d7d8
   specs:
     webmock (1.3.5)
       addressable (>= 2.1.1)

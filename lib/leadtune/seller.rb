@@ -97,6 +97,8 @@ module Leadtune
   class Seller
     include Validations
 
+    class HttpError < RuntimeError ; end
+
     attr_accessor :decision, :username, :password, :timeout #:nodoc:
 
     # Initialize a new Leadtune::Seller object.  
@@ -124,7 +126,8 @@ module Leadtune
       throw_post_error unless run_validations!
 
       curl = build_curl_easy_object
-      curl.http(:post) # raises error or returns true
+      curl.http("POST")
+
       Response.new(curl.body_str)
     end
 
@@ -247,12 +250,15 @@ module Leadtune
     end
 
     def build_curl_easy_object #:nodoc:
-      Curl::Easy.new do |post|
-        post.url = URI.join(leadtune_url, "/prospects").to_s
-        post.userpwd = "#{username}:#{password}"
-        post.timeout = timeout 
-        post.headers = headers
-        post.post_body = @factors.merge(:decision => @decision).to_json
+      Curl::Easy.new do |curl|
+        curl.url = URI.join(leadtune_url, "/prospects").to_s
+        curl.userpwd = "#{username}:#{password}"
+        curl.timeout = timeout 
+        curl.headers = headers
+        curl.post_body = @factors.merge(:decision => @decision).to_json
+        curl.on_failure do |curl, code|
+          raise HttpError.new(curl.response_code)
+        end
       end
     end
 

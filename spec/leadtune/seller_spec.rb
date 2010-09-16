@@ -167,6 +167,10 @@ EOF
   end
 
   describe "#post" do
+    before(:each) do
+      # requests are stubbed by json_factors_should_include
+    end
+
     it "converts required factors to JSON" do
       expected_factors = {"event" => subject.event,
                           "organization" => subject.organization,
@@ -184,13 +188,51 @@ EOF
       subject.post
     end
 
+    context("when a 404 is returned") do
+      before(:each) do
+        stub_request(:any, /.*leadtune.*/).to_return(:status => 404)
+      end
+
+      it "raises a HttpError" do
+        pending do
+          lambda {subject.post}.should raise_error(Leadtune::Seller::HttpError)
+        end
+      end
+    end
+
+    context("when a 401 is returned") do
+      before(:each) do
+        stub_request(:any, /.*leadtune.*/).to_return(:status => 401)
+      end
+
+      it "raises a HttpError" do
+        pending do
+          subject.post
+        end
+      end
+    end
+
+    context("when a 500 is returned") do
+      before(:each) do
+        stub_request(:any, /.*leadtune.*/).to_return(:status => 500)
+      end
+
+      it "raises a HttpError" do
+        pending do
+          subject.post
+        end
+      end
+    end
+
   end
+
   describe("#timeout") do
     it "is passed on to Curl::Easy" do
       curl = double(Curl::Easy, :body_str => "{}").as_null_object
       curl.should_receive(:timeout=).with(5)
       Curl::Easy.stub!(:new).and_yield(curl).and_return(curl)
-      stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects")
+      stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects").
+        to_return(:status => [201, "Created"])
 
       subject.post
     end
@@ -235,11 +277,10 @@ EOF
 
 
   def json_factors_should_include(expected_factors)
-    stub_request(:post, "https://sandbox-appraiser.leadtune.com/prospects").
-      to_return do |req|
+    stub_request(:any, /.*leadtune.*/).to_return do |req|
       json = JSON::parse(req.body)
       json.should include(expected_factors)
-      {:body => req.body}
+      {:body => req.body, :status => [201, "Created"]}
     end
   end
 
