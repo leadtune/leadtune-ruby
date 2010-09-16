@@ -65,23 +65,24 @@ module Leadtune
   # The configuration file is a YAML file, an example of which is:
   #  username: me@mycorp.com
   #  password: my_secret
+  #  organization: MYC
   #--
   #  url: http://localhost:8080
   #++
   #
   # === Environment Variables
   # 
-  # Your username and password can be specified in the
-  # +LEADTUNE_SELLER_USERNAME+ and +LEADTUNE_SELLER_PASSWORD+ environment
-  # variables. <em>These values take precedence over values read from a
-  # configuration file.</em>
+  # Your username, password, and organization can be specified in the
+  # +LEADTUNE_SELLER_USERNAME+, +LEADTUNE_SELLER_PASSWORD+, and
+  # +LEADTUNE_SELLER_ORGANIZATION+ environment variables. <em>These values
+  # take precedence over values read from a configuration file.</em>
   #
   # === Instance Methods
   #
-  # You can also set your username and password by calling the
-  # Leadtune::Seller object's <tt>\#username</tt> and <tt>\#password</tt>
-  # methods. <em>These values take precedence over values read from
-  # environment variables, or a configuration file.</em>
+  # You can also set your username, password, and organization by calling the
+  # Leadtune::Seller object's <tt>\#username</tt>, <tt>\#password</tt>, and
+  # <tt>\#organization</tt> methods. <em>These values take precedence over
+  # values read from environment variables, or a configuration file.</em>
   #
   # == Dynamic Factor Access
   #
@@ -119,11 +120,11 @@ module Leadtune
       @config = {}
 
       determine_environment
+      load_factors
       load_options(args.extract_options!)
       load_config_file(args.first)
       load_authentication
       load_timeout
-      load_factors
 
       block.call(self) if block_given?
     end
@@ -210,6 +211,7 @@ module Leadtune
     end
 
     def load_options(options) #:nodoc:
+      raise RuntimeError.new("must load factors first") unless @@factors_loaded
       options.each_pair do |key, value|
         if respond_to?("#{key}=")
           self.send("#{key}=", value)
@@ -262,6 +264,7 @@ module Leadtune
     def load_authentication #:nodoc:
       self.username = ENV["LEADTUNE_SELLER_USERNAME"] || @config["username"]
       self.password = ENV["LEADTUNE_SELLER_PASSWORD"] || @config["password"]
+      self.organization = ENV["LEADTUNE_SELLER_ORGANIZATION"] || @config["organization"]
     end
 
     def load_timeout #:nodoc:

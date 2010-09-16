@@ -8,12 +8,12 @@ describe Leadtune::Seller do
 
   before(:each) do
     subject.event = "offers_prepared"
-    subject.organization = "Foo"
     subject.decision = {"target_buyers" => ["AcmeU", "Bravo", "ConvU",],}
     subject.email = "bar@baz.com"
     # use ||= so we won't override if loaded from ENV or config_file
     subject.username ||= "test@foo.com"
     subject.password ||= "secret"
+    subject.organization ||= "Foo"
   end
 
 
@@ -49,13 +49,9 @@ describe Leadtune::Seller do
     end
   end
 
-  context("w/ username & password from config_file") do
+  context("w/ username, password, & organization from config_file") do
     subject do
-      config_file = StringIO.new <<EOF
-username: config_file@config_file.com
-password: config_file_secret
-EOF
-      Leadtune::Seller.new(config_file)
+      Leadtune::Seller.new(leadtune_config_file)
     end
 
     describe "#username" do
@@ -65,18 +61,20 @@ EOF
     describe "#password" do
       specify {subject.password.should == "config_file_secret"}
     end
+
+    describe "#organization" do
+      specify {subject.organization.should == "config_file_org"}
+    end
   end
 
-  context("w/ username & password from ENV") do
+  context("w/ username, password, & organization from ENV") do
 
     before(:all) do
-      ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
-      ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
+      setup_leadtune_env
     end
 
     after(:all) do
-      ENV.delete("LEADTUNE_SELLER_USERNAME")
-      ENV.delete("LEADTUNE_SELLER_PASSWORD")
+      teardown_leadtune_env
     end
 
     subject {Leadtune::Seller.new}
@@ -88,26 +86,24 @@ EOF
     describe "#password" do
       specify {subject.password.should == "env_secret"}
     end
+
+    describe "#organization" do
+      specify {subject.organization.should == "env_org"}
+    end
   end
 
-  context("w/ username & password from ENV *AND* config_file") do
+  context("w/ username, password, & organization from ENV *AND* config_file") do
 
     before(:all) do
-      ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
-      ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
+      setup_leadtune_env
     end
 
     after(:all) do
-      ENV.delete("LEADTUNE_SELLER_USERNAME")
-      ENV.delete("LEADTUNE_SELLER_PASSWORD")
+      teardown_leadtune_env
     end
 
     subject do
-      config_file = StringIO.new <<EOF
-username: config_file@config_file.com
-password: config_file_secret
-EOF
-      Leadtune::Seller.new(config_file)
+      Leadtune::Seller.new(leadtune_config_file)
     end
 
     describe "#username" do
@@ -119,6 +115,12 @@ EOF
     describe "#password" do
       it "uses the ENV value over the config file" do
         subject.password.should == "env_secret"
+      end
+    end
+
+    describe "#organization" do
+      it "uses the ENV value over the config file" do
+        subject.organization.should == "env_org"
       end
     end
   end
@@ -300,4 +302,23 @@ EOF
     end
   end
 
+  def setup_leadtune_env
+    ENV["LEADTUNE_SELLER_USERNAME"] = "env@env.com"
+    ENV["LEADTUNE_SELLER_PASSWORD"] = "env_secret"
+    ENV["LEADTUNE_SELLER_ORGANIZATION"] = "env_org"
+  end
+
+  def teardown_leadtune_env
+    ENV.delete("LEADTUNE_SELLER_USERNAME")
+    ENV.delete("LEADTUNE_SELLER_PASSWORD")
+    ENV.delete("LEADTUNE_SELLER_ORGANIZATION")
+  end
+
+  def leadtune_config_file
+    StringIO.new <<EOF
+username: config_file@config_file.com
+password: config_file_secret
+organization: config_file_org
+EOF
+  end
 end
