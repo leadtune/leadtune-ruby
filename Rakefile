@@ -7,6 +7,7 @@ require 'rake'
 require 'yaml'
 
 require 'rake/rdoctask'
+require 'yard'
 require 'rspec/core/rake_task'
 require 'cucumber/rake/task'
 
@@ -25,6 +26,8 @@ task :clobber => [:clobber_rdoc,]do
 end
 
 task :default => [:spec, :cucumber,]
+
+YARD::Rake::YardocTask.new
 
 
 
