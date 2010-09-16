@@ -6,7 +6,7 @@
 
 require "json"
 
-require "prospect/response/appraisals"
+require "appraisals"
 
 module Leadtune
   class Prospect
@@ -77,7 +77,7 @@ module Leadtune
 
       def wrap_helpers_around_appraisals
         appraisals = @json["decision"]["appraisals"] || [] rescue []
-        appraisals = Appraisals.new(appraisals)
+        appraisals = Leadtune::Appraisals.new(appraisals)
         @json.merge!("decision" => {"appraisals" => appraisals,})
       end
 
