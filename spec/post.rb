@@ -10,7 +10,7 @@ class Leadtune::Prospect
   end
 end
 
-p = Leadtune::Prospect.new do |p|
+p = Leadtune::Prospect.post do |p|
   p.event = "offers_prepared"
   p.organization = "LOL"
   p.username = "admin@loleads.com"
@@ -23,5 +23,5 @@ p = Leadtune::Prospect.new do |p|
   end
 end
 
-pp p.post.factors
+pp p.factors
 pp p.decision_id

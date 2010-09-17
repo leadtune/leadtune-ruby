@@ -26,7 +26,7 @@ module Leadtune
   #  require "rubygems"
   #  require "leadtune"
   #
-  #  prospect = Leadtune::Prospect.new({
+  #  prospect = Leadtune::Prospect.post({
   #    :username => "admin@loleads.com"        # required (See Authentication)
   #    :password => "secret"                   # required (See Authentication)
   #    :organization => "LOL",                 # required (See Authentication)
@@ -35,11 +35,10 @@ module Leadtune
   #    :target_buyers => ["TB-LOL", "AcmeU",]  # required
   #    ... include optional factors here, see #available_factors or http://leadtune.com/factors for details
   #  })
-  #  prospect.post
   #
   # <em>Or alternately</em>
   #
-  #  prospect = Leadtune::Prospect.new do |p|
+  #  prospect = Leadtune::Prospect.post do |p|
   #    p.event = "offers_prepared"
   #    p.organization = "LOL"   
   #    ... and so on
@@ -125,18 +124,17 @@ module Leadtune
 
       load_available_factors
       load_config_file(args.first)
-      load_authentication
       load_options(args.extract_options!)
 
       block.call(self) if block_given?
     end
 
-    def self.get(options={})
-      new(options).get
+    def self.get(options={}, &block)
+      new(options, &block).get
     end
 
-    def self.post(options={})
-      new(options).post
+    def self.post(options={}, &block)
+      new(options, &block).post
     end
 
     # Get a prospect from LeadTune.
@@ -213,13 +211,30 @@ module Leadtune
     end
 
     def timeout #:nodoc:
-      @timeout ||= (ENV["LEADTUNE_TIMEOUT"] || 
-                    @config["timeout"] || 
-                    DEFAULT_TIMEOUT).to_i
+      @timeout ||= 
+        ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
     end
 
+    def username
+      @username ||= ENV["LEADTUNE_USERNAME"] || @config["username"]
+    end
+
+    def password
+      @password ||= ENV["LEADTUNE_PASSWORD"] || @config["password"]
+    end
+
+    def organization
+      @factors["organization"] ||= 
+        ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
+    end
+
+    
 
     private 
+
+    def load_available_factors #:nodoc:
+      self.class.load_available_factors
+    end
 
     def self.load_available_factors(file=default_factors_file) #:nodoc:
       return if @@factors_loaded
@@ -227,14 +242,16 @@ module Leadtune
       factors.sort {|x,y| x["code"] <=> y["code"]}.each do |factor|
         @@factors << factor["code"]
 
-        next if instance_methods.include?(factor["code"]) 
-
-        define_method(factor["code"].to_sym) do
-          @factors[factor["code"]]
+        unless instance_methods.include?(factor["code"]) 
+          define_method(factor["code"].to_sym) do
+            @factors[factor["code"]]
+          end
         end
 
-        define_method(("%s=" % [factor["code"]]).to_sym) do |value|
-          @factors[factor["code"]] = value
+        unless instance_methods.include?("#{factor["code"]}=") 
+          define_method(("%s=" % [factor["code"]]).to_sym) do |value|
+            @factors[factor["code"]] = value
+          end
         end
       end
       @@factors_loaded = true
@@ -281,16 +298,6 @@ module Leadtune
       end
     end
 
-    def load_authentication #:nodoc:
-      self.username = ENV["LEADTUNE_USERNAME"] || @config["username"]
-      self.password = ENV["LEADTUNE_PASSWORD"] || @config["password"]
-      self.organization = ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
-    end
-
-    def load_available_factors #:nodoc:
-      self.class.load_available_factors
-    end
-
     def build_curl_easy_object(&block) #:nodoc:
       Curl::Easy.new do |curl|
         curl.http_auth_types = [:basic,]
@@ -334,8 +341,8 @@ module Leadtune
     end
 
     def load_options(options) #:nodoc:
-      self.username = options["username"] if options.include?("username")
-      self.password = options["password"] if options.include?("password")
+      self.username = options.delete("username") if options.include?("username")
+      self.password = options.delete("password") if options.include?("password")
       load_factors(options)
     end
 
