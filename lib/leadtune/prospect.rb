@@ -5,7 +5,6 @@
 # Copyright 2010 LeadTune LLC
 
 require "yaml"
-require "json"
 require "curb"
 require "uri"
 
@@ -222,6 +221,10 @@ module Leadtune
 
     def password=(password)
       @config.password = password
+    end
+
+    def post_data
+      @factors.merge("decision" => decision)
     end
 
 

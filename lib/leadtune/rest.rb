@@ -1,3 +1,5 @@
+require "json"
+
 module Leadtune
   class Rest
 
@@ -46,7 +48,7 @@ module Leadtune
     def build_curl_easy_object_post #:nodoc:
       build_curl_easy_object do |curl|
         curl.url = URI.join(@config.leadtune_host, "/prospects").to_s
-        curl.post_body = @prospect.factors.merge(:decision => @prospect.decision).to_json
+        curl.post_body = @prospect.post_data.to_json
       end
     end
 

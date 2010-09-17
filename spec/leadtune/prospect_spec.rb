@@ -1,4 +1,5 @@
 require "digest"
+require "json"
 require "spec_helper"
 
 describe Leadtune::Prospect do
@@ -84,31 +85,19 @@ describe Leadtune::Prospect do
 
   end
 
-  describe "#post" do
+  describe "#post_body" do
     before(:each) do
       # requests are stubbed by json_factors_should_include
     end
 
-    it "converts required factors to JSON" do
-      expected_factors = {"event" => subject.event,
-                          "organization" => subject.organization,
-                          "decision" => subject.decision,}
-      json_factors_should_include(expected_factors)
+    it "includes decision" do
+      expected_factors = {"decision" => subject.decision,}
 
-      subject.post
-    end
-
-    it "converts optional factors to JSON" do
-      subject.channel = "banner"
-      expected_factors = {"channel" => subject.channel,}
-      json_factors_should_include(expected_factors)
-
-      subject.post
+      subject.post_data.should include(expected_factors)
     end
   end
 
   describe("#new") do
-    
     it "receives options in a Hash" do
       s = Leadtune::Prospect.new({:channel => "banner",})
 
@@ -121,7 +110,6 @@ describe Leadtune::Prospect do
       s.channel.should == "banner"
       s.organization.should == "config_file_org"
     end
-
   end
 
   describe("#target_buyers=") do
