@@ -14,7 +14,6 @@ require 'rake'
 require 'yaml'
 
 require 'rake/rdoctask'
-require 'yard'
 require 'rspec/core/rake_task'
 require 'cucumber/rake/task'
 
