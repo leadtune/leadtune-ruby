@@ -4,17 +4,14 @@
 # Eric Wollesen (mailto:devs@leadtune.com)
 # Copyright 2010 LeadTune LLC
 
-dir = File.dirname(__FILE__)
-$LOAD_PATH.unshift dir unless $LOAD_PATH.include?(dir)
-
 require "yaml"
 require "json"
 require "curb"
 require "uri"
-require File.dirname(__FILE__) + "/../object_extensions"
 
-require "prospect/validations"
-require "prospect/response"
+require "object_extensions"
+require "leadtune/prospect/validations"
+require "leadtune/appraisals"
 
 
 module Leadtune
@@ -120,10 +117,10 @@ module Leadtune
       @config = {}
 
       determine_environment
-      load_factors
-      load_options(args.extract_options!)
+      load_available_factors
       load_config_file(args.first)
       load_authentication
+      load_options(args.extract_options!)
       load_timeout
 
       block.call(self) if block_given?
@@ -132,13 +129,33 @@ module Leadtune
     # Post this lead to the LeadTune Appraiser service.
     # 
     # Returns a Response object.
+
     def post
       throw_post_error unless run_validations!
 
       curl = build_curl_easy_object
       curl.http("POST")
 
-      Response.new(curl.body_str)
+      parse_response(curl.body_str)
+      self
+    end
+
+    # The unique +decision_id+ for this Response.
+
+    def decision_id
+      @decision ||= {}
+      @decision["decision_id"]
+    end
+
+    # The appraisals for this Response.
+    #
+    # The Array returned has been extended to include two methods,
+    # +duplicates+ and +non_duplicates+.  Each returns the appraisals of the
+    # target_buyers for whom this lead is or is not a known duplicate.
+    
+    def appraisals
+      @decision ||= {}
+      @decision["appraisals"]
     end
 
     # Return an array of the factors which can be specified.
@@ -153,13 +170,32 @@ module Leadtune
     # See http://leadtune.com/factors for a detailed list of factors and their
     # accepted values.
 
-    def factors
+    def available_factors
       @@factors
+    end
+
+    def factors
+      @factors
     end
 
     # Override the normal host
     def leadtune_host=(host) #:nodoc:
       @leadtune_host = host
+    end
+
+    def get(options={})
+      load_options(options)
+      # throw_get_error unless run_validations!
+
+      curl = build_curl_easy_object_get
+      curl.http("GET")
+
+      parse_response(curl.body_str)
+      self
+    end
+
+    def self.get(options={})
+      new(options).get
     end
 
     # Assign an array of organization codes for the prospects target buyers.
@@ -184,12 +220,8 @@ module Leadtune
       raise RuntimeError.new(errors.full_messages.inspect) 
     end
 
-    def headers #:nodoc:
-      {"Content-Type" => "application/json",
-       "Accept" => "application/json",}
-    end
-
-    def self.load_factors(file=default_factors_file) #:nodoc:
+    def self.load_available_factors(file=default_factors_file) #:nodoc:
+      return if @@factors_loaded
       factors = YAML::load(file)
       factors.sort {|x,y| x["code"] <=> y["code"]}.each do |factor|
         @@factors << factor["code"]
@@ -204,19 +236,11 @@ module Leadtune
           @factors[factor["code"]] = value
         end
       end
+      @@factors_loaded = true
     end
 
     def self.default_factors_file #:nodoc:
       File.open("/Users/ewollesen/src/uber/site/db/factors.yml") # FIXME: magic
-    end
-
-    def load_options(options) #:nodoc:
-      raise RuntimeError.new("must load factors first") unless @@factors_loaded
-      options.each_pair do |key, value|
-        if respond_to?("#{key}=")
-          self.send("#{key}=", value)
-        end
-      end
     end
 
     def load_config_file(config_file) #:nodoc:
@@ -274,9 +298,8 @@ module Leadtune
       self.timeout ? self.timeout = self.timeout.to_i : nil
     end
 
-    def load_factors #:nodoc:
-      self.class.load_factors unless @@factors_loaded
-      @@factors_loaded = true
+    def load_available_factors #:nodoc:
+      self.class.load_available_factors
     end
 
     def leadtune_host #:nodoc:
@@ -289,14 +312,73 @@ module Leadtune
     def build_curl_easy_object #:nodoc:
       Curl::Easy.new do |curl|
         curl.url = URI.join(leadtune_host, "/prospects").to_s
-        curl.userpwd = "#{username}:#{password}"
         curl.timeout = timeout 
         curl.headers = headers
+        curl.http_auth_types = [:basic,]
+        curl.username = username
+        curl.password = password
         curl.post_body = @factors.merge(:decision => @decision).to_json
+        #curl.verbose = true
         curl.on_failure do |curl, code|
-          raise HttpError.new(curl.response_code)
+          raise HttpError.new("#{curl.response_code} #{curl.body_str}")
         end
       end
+    end
+
+    def headers #:nodoc:
+      {"Content-Type" => "application/json",
+       "Accept" => "application/json",}
+    end
+
+    def build_curl_easy_object_get #:nodoc:
+      Curl::Easy.new do |curl|
+        curl.url = URI.join(leadtune_host, "/prospects#{prospect_id.present? ? "/#{prospect_id}": ""}?organization=#{organization}&prospect_ref=#{prospect_ref}").to_s
+
+        curl.timeout = timeout 
+        curl.http_auth_types = [:basic,]
+        curl.username = username
+        curl.password = password
+        curl.headers = headers
+        #curl.verbose = true
+        curl.on_failure do |curl, code|
+          raise HttpError.new("#{curl.response_code} #{curl.body_str}")
+        end
+      end
+    end
+
+    def load_options(options) #:nodoc:
+      self.username = options["username"] if options.include?("username")
+      self.password = options["password"] if options.include?("password")
+      load_factors(options)
+    end
+
+    def load_factors(factors)
+      raise RuntimeError.new("must load factors first") unless @@factors_loaded
+      factors.each_pair do |key, value|
+        if respond_to?("#{key}=")
+          self.send("#{key}=", value)
+        end
+      end
+    end
+
+    def parse_response(json)
+      json_obj = JSON::parse(json)
+      load_decision(json_obj)
+      load_factors(json_obj)
+    end
+
+    def load_decision(json_obj)
+      return unless json_obj.include?("decision")
+
+      @decision = json_obj.delete("decision")
+      if @decision.include?("appraisals")
+        @decision["appraisals"] = Appraisals.new(@decision["appraisals"])
+      end
+    end
+
+    # stolen from ActiveSupport
+    def extract_options!
+      last.is_a?(::Hash) ? pop : {}
     end
 
     LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
@@ -311,11 +393,6 @@ module Leadtune
 
     @@factors_loaded = false
     @@factors = []
-
-    # stolen from ActiveSupport
-    def extract_options!
-      last.is_a?(::Hash) ? pop : {}
-    end
 
   end
 end

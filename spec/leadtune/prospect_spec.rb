@@ -1,21 +1,18 @@
 require "digest"
-require "rack"
 require "spec_helper"
-require "tcpsocket-wait"
-require "tempfile"
 
 describe Leadtune::Prospect do
 
-  before(:each) do
-    subject.event = "offers_prepared"
-    subject.decision = {"target_buyers" => ["AcmeU", "Bravo", "ConvU",],}
-    subject.email = "bar@baz.com"
-    # use ||= so we won't override if loaded from ENV or config_file
-    subject.username ||= "test@foo.com"
-    subject.password ||= "secret"
-    subject.organization ||= "Foo"
+  subject do 
+    Leadtune::Prospect.new({"event" => "offers_prepared",
+                            "target_buyers" => ["AcmeU", "Bravo", "ConvU",],
+                            "email" => "bar@baz.com",}) do |p|
+      # use ||= so we won't override if loaded from ENV or config_file
+      p.username ||= "test@foo.com"
+      p.password ||= "secret"
+      p.organization ||= "Foo"
+    end
   end
-
 
   context("is valid") do
     it "with before(:each) defaults" do
@@ -156,16 +153,32 @@ describe Leadtune::Prospect do
     end
   end
 
-  describe "#factors" do
-    specify {subject.factors.should include("organization")}
-    specify {subject.factors.should include("browser_family")}
-    specify {subject.factors.should include("browser_version")}
+  describe "#availble_factors" do
+    subject {Leadtune::Prospect.new.available_factors}
+
+    it {should_not include("decision")}
+    it {should include("browser_family")}
+    it {should include("browser_version")}
+    it {should include("organization")}
   end
 
   it "rejects undefined factors" do
     lambda do
       subject.my_factor = "foo"
     end.should raise_error(NoMethodError, /my_factor=/)
+  end
+
+  describe "#get" do
+    before(:each) do
+      stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
+    end
+
+    it "loads the browser_family factor" do
+      subject.get
+
+      subject.browser_family.should == "Firefox"
+    end
+    
   end
 
   describe "#post" do
@@ -321,4 +334,18 @@ password: config_file_secret
 organization: config_file_org
 EOF
   end
+
+  def fake_curb_response
+    {:event => "offers_prepared",
+     :organization => "LOL",
+     :created_at => Time.now,
+     :browser_family => "Firefox",
+     :browser_version => "3.6.3",
+     :email_hash => "deadbeef",
+     :decision => {
+       :appraisals => [{:target_buyer => "TB-LOL", :value => 1},],
+     },
+     :prospect_id => "deadbeef",}.to_json
+  end
+
 end
