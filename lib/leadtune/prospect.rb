@@ -128,7 +128,6 @@ module Leadtune
       load_config_file(args.first)
       load_authentication
       load_options(args.extract_options!)
-      load_timeout
 
       block.call(self) if block_given?
     end
@@ -154,7 +153,7 @@ module Leadtune
     # Post this prospect to the LeadTune Appraiser service.
 
     def post
-      curl = build_curl_easy_object
+      curl = build_curl_easy_object_post
       curl.http("POST")
 
       parse_response(curl.body_str)
@@ -199,12 +198,6 @@ module Leadtune
       @factors
     end
 
-    # Override the normal host
-
-    def leadtune_host=(host) #:nodoc:
-      @leadtune_host = host
-    end
-
     # Assign an array of organization codes for the prospects target buyers.
     def target_buyers=(target_buyers)
       unless target_buyers.is_a?(Array)
@@ -214,10 +207,16 @@ module Leadtune
       @decision = {"target_buyers" => target_buyers}
     end
 
-    # Return an array of organization codes for the prospects target buyers.
+    # Return an array of organization codes for the prospect's target buyers.
     def target_buyers
       @decision ||= {}
       @decision["target_buyers"] ||= []
+    end
+
+    def timeout #:nodoc:
+      @timeout ||= (ENV["LEADTUNE_TIMEOUT"] || 
+                    @config["timeout"] || 
+                    DEFAULT_TIMEOUT).to_i
     end
 
 
@@ -295,58 +294,40 @@ module Leadtune
       self.organization = ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
     end
 
-    def load_timeout #:nodoc:
-      self.timeout = ENV["LEADTUNE_TIMEOUT"] || 
-        @config["timeout"] || 
-        DEFAULT_TIMEOUT
-      self.timeout ? self.timeout = self.timeout.to_i : nil
-    end
-
     def load_available_factors #:nodoc:
       self.class.load_available_factors
     end
 
-    def leadtune_host #:nodoc:
-      @leadtune_host || 
-        ENV["LEADTUNE_HOST"] || 
-        @config["host"] || 
-        LEADTUNE_HOSTS[@environment]
-    end
-
-    def build_curl_easy_object #:nodoc:
+    def build_curl_easy_object(&block) #:nodoc:
       Curl::Easy.new do |curl|
-        curl.url = URI.join(leadtune_host, "/prospects").to_s
-        curl.timeout = timeout 
-        curl.headers = headers
         curl.http_auth_types = [:basic,]
         curl.username = username
         curl.password = password
-        curl.post_body = @factors.merge(:decision => @decision).to_json
-        #curl.verbose = true
+        curl.timeout = timeout 
+        curl.headers = default_headers
         curl.on_failure do |curl, code|
           raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
         end
+        #curl.verbose = true
+        yield curl
       end
     end
 
-    def headers #:nodoc:
+    def default_headers #:nodoc:
       {"Content-Type" => "application/json",
        "Accept" => "application/json",}
     end
 
-    def build_curl_easy_object_get #:nodoc:
-      Curl::Easy.new do |curl|
-        curl.url = build_get_url
+    def build_curl_easy_object_post #:nodoc:
+      build_curl_easy_object do |curl|
+        curl.url = URI.join(leadtune_host, "/prospects").to_s
+        curl.post_body = @factors.merge(:decision => @decision).to_json
+      end
+    end
 
-        curl.timeout = timeout 
-        curl.http_auth_types = [:basic,]
-        curl.username = username
-        curl.password = password
-        curl.headers = headers
-        #curl.verbose = true
-        curl.on_failure do |curl, code|
-          raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
-        end
+    def build_curl_easy_object_get #:nodoc:
+      build_curl_easy_object do |curl|
+        curl.url = build_get_url
       end
     end
 
@@ -387,6 +368,19 @@ module Leadtune
       if @decision.include?("appraisals")
         @decision["appraisals"] = Appraisals.new(@decision["appraisals"])
       end
+    end
+
+    # Override the normal host
+
+    def leadtune_host=(host) #:nodoc:
+      @leadtune_host = host
+    end
+
+    def leadtune_host #:nodoc:
+      @leadtune_host || 
+        ENV["LEADTUNE_HOST"] || 
+        @config["host"] || 
+        LEADTUNE_HOSTS[@environment]
     end
 
     LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
