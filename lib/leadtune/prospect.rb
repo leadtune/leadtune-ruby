@@ -114,8 +114,7 @@ module Leadtune
 
     # Initialize a new Leadtune::Prospect object.  
     #
-    # [+config_file+] An optional filename or a file-like object, see
-    #                 Authentication above.
+    # [+config_file+] An optional filename or a file-like object
     # [+factors+]     A hash of factors with which to initialize the Prospect
 
     def initialize(*args, &block)
@@ -125,13 +124,10 @@ module Leadtune
       @rest = Rest.new(@config)
 
       load_options(args.extract_options!)
-
       block.call(self) if block_given?
     end
 
     # Get a prospect from the LeadTune Appraiser service.
-    #
-    # Requires that either +prospect_id+ or +prospect_ref+ be set.
 
     def self.get(options={}, &block)
       new(options, &block).get
@@ -144,8 +140,6 @@ module Leadtune
     end
 
     # Get a prospect from the LeadTune Appraiser service.
-    #
-    # Requires that either +prospect_id+ or +prospect_ref+ be set.
 
     def get
       json = @rest.get(self)
@@ -203,8 +197,7 @@ module Leadtune
     end
 
     def organization #:nodoc:
-      @factors["organization"] ||= 
-        ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
+      @factors["organization"] ||= @config.organization
     end
     
     def prospect_id #:nodoc:
@@ -216,19 +209,19 @@ module Leadtune
     end
 
     def leadtune_host=(host)
-      @rest.leadtune_host = host
+      @config.leadtune_host = host
     end
 
     def leadtune_host
-      @rest.leadtune_host
+      @config.leadtune_host
     end
 
     def username=(username)
-      @rest.username = username
+      @config.username = username
     end
 
     def password=(password)
-      @rest.password = password
+      @config.password = password
     end
 
 

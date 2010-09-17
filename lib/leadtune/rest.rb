@@ -1,8 +1,6 @@
 module Leadtune
   class Rest
 
-    attr_accessor :environment, :leadtune_host, :username, :password, :timeout #:nodoc:
-
     def initialize(config)
       @config = config
       @prospect = nil
@@ -22,55 +20,20 @@ module Leadtune
       curl.body_str ? JSON::parse(curl.body_str) : {}
     end
 
-    def leadtune_host #:nodoc:
-      @leadtune_host || 
-        ENV["LEADTUNE_HOST"] || 
-        @config["host"] || 
-        LEADTUNE_HOSTS[environment]
-    end
-
 
     private
-
-    def environment #:nodoc:
-      @environment ||= production_environment_detected? ? :production : :sandbox
-    end
-
-    def production_environment_detected? #:nodoc:
-      if ENV.include?("APP_ENV")
-        "production" == ENV["APP_ENV"]
-      else
-        defined?(Rails) && Rails.env.production? ||
-          "production" == ENV["RACK_ENV"] ||
-          "production" == ENV["RAILS_ENV"] ||
-          defined?(RAILS_ENV) && "production" == RAILS_ENV
-      end
-    end
-
-    def timeout #:nodoc:
-      @timeout ||= 
-        (ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
-    end
-
-    def username #:nodoc:
-      @username ||= ENV["LEADTUNE_USERNAME"] || @config["username"]
-    end
-
-    def password #:nodoc:
-      @password ||= ENV["LEADTUNE_PASSWORD"] || @config["password"]
-    end
 
     def build_curl_easy_object(&block) #:nodoc:
       Curl::Easy.new do |curl|
         curl.http_auth_types = [:basic,]
-        curl.username = username
-        curl.password = password
-        curl.timeout = timeout
+        curl.username = @config.username
+        curl.password = @config.password
+        curl.timeout = @config.timeout
         curl.headers = default_headers
         curl.on_failure do |curl, code|
           raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
         end
-        # curl.verbose = true
+        #curl.verbose = true
         yield curl
       end
     end
@@ -82,7 +45,7 @@ module Leadtune
 
     def build_curl_easy_object_post #:nodoc:
       build_curl_easy_object do |curl|
-        curl.url = URI.join(leadtune_host, "/prospects").to_s
+        curl.url = URI.join(@config.leadtune_host, "/prospects").to_s
         curl.post_body = @prospect.factors.merge(:decision => @prospect.decision).to_json
       end
     end
@@ -97,21 +60,12 @@ module Leadtune
       path = "/prospects"
       path += "/#{@prospect.prospect_id}" if @prospect.prospect_id
       params = {:organization => @prospect.organization,}
-      params.merge!(:prospect_ref => @prospect.prospect_ref) if @prospect.prospect_ref
+      if @prospect.prospect_ref
+        params.merge!(:prospect_ref => @prospect.prospect_ref) 
+      end
 
-      URI.join(leadtune_host, path, "?" + params.to_params).to_s
+      URI.join(@config.leadtune_host, path, "?" + params.to_params).to_s
     end
-
-
-    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
-    LEADTUNE_HOST_PRODUCTION = "https://appraiser.leadtune.com".freeze
-
-    LEADTUNE_HOSTS = {
-      :production => LEADTUNE_HOST_PRODUCTION,
-      :sandbox => LEADTUNE_HOST_SANDBOX,
-    }
-
-    DEFAULT_TIMEOUT = 5
 
   end
 end

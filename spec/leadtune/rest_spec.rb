@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Leadtune::Rest do
 
-  subject {Leadtune::Rest.new({})}
+  subject {Leadtune::Rest.new(Leadtune::Config.new)}
 
   context("w/ username & password from config_file") do
 
@@ -211,8 +211,11 @@ describe Leadtune::Rest do
   end
 
   def rest_config
-    {"username" => "config@config.com", 
-     "password" => "config_secret", 
-     "timeout" => 7,}
+    config_file = StringIO.new <<EOF
+username: config@config.com
+password: config_secret
+timeout: 7
+EOF
+    Leadtune::Config.new(config_file)
   end
 end

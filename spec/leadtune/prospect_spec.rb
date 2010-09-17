@@ -4,9 +4,10 @@ require "spec_helper"
 describe Leadtune::Prospect do
 
   subject do 
-    Leadtune::Prospect.new({"event" => "offers_prepared",
+    Leadtune::Prospect.new({"prospect_id" => "deadfish",
+                            "email" => "bar@baz.com",
                             "target_buyers" => ["AcmeU", "Bravo", "ConvU",],
-                            "email" => "bar@baz.com",}) do |p|
+                            "event" => "offers_prepared",}) do |p|
       # use ||= so we won't override if loaded from ENV or config_file
       p.organization ||= "Foo"
     end
@@ -73,7 +74,6 @@ describe Leadtune::Prospect do
   describe "#get" do
     before(:each) do
       stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
-      subject.prospect_id = "deadfish"
     end
 
     it "loads the browser_family factor" do
