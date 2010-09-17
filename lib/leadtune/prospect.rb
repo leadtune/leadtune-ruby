@@ -103,8 +103,6 @@ module Leadtune
   class Prospect
     include Validations
 
-    class HttpError < RuntimeError ; end
-
     attr_accessor :decision, :username, :password, :timeout #:nodoc:
 
     # Initialize a new Leadtune::Prospect object.  
@@ -131,7 +129,8 @@ module Leadtune
     # Returns a Response object.
 
     def post
-      throw_post_error unless run_validations!
+      @method = "POST"
+      throw_validation_error unless run_validations!
 
       curl = build_curl_easy_object
       curl.http("POST")
@@ -185,7 +184,8 @@ module Leadtune
 
     def get(options={})
       load_options(options)
-      # throw_get_error unless run_validations!
+      @method = "GET"
+      throw_validation_error unless run_validations!
 
       curl = build_curl_easy_object_get
       curl.http("GET")
@@ -216,7 +216,7 @@ module Leadtune
 
     private 
 
-    def throw_post_error #:nodoc:
+    def throw_validation_error #:nodoc:
       raise RuntimeError.new(errors.full_messages.inspect) 
     end
 
@@ -320,7 +320,7 @@ module Leadtune
         curl.post_body = @factors.merge(:decision => @decision).to_json
         #curl.verbose = true
         curl.on_failure do |curl, code|
-          raise HttpError.new("#{curl.response_code} #{curl.body_str}")
+          raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
         end
       end
     end
@@ -341,7 +341,7 @@ module Leadtune
         curl.headers = headers
         #curl.verbose = true
         curl.on_failure do |curl, code|
-          raise HttpError.new("#{curl.response_code} #{curl.body_str}")
+          raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
         end
       end
     end

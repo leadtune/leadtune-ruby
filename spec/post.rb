@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "rubygems"
+require "pp"
 require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
 class Leadtune::Prospect
@@ -22,4 +23,4 @@ p = Leadtune::Prospect.new do |p|
   end
 end
 
-p.post
+pp p.post.factors

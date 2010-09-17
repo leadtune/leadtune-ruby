@@ -32,6 +32,7 @@ describe Leadtune::Prospect do
     ["decision", "event", "organization", "username", "password",].each do |field|
       it "without a(n) #{field}" do
         subject.send("#{field}=", nil)
+        subject.instance_variable_set("@method", "POST")
 
         subject.should_not be_valid
         subject.errors[field].should_not be_empty
@@ -40,6 +41,7 @@ describe Leadtune::Prospect do
 
     it "without either an email or an email_hash" do
       subject.email = subject.email_hash = nil
+      subject.instance_variable_set("@method", "POST")
 
       subject.should_not be_valid
       subject.errors[:base].any? {|x| /email or email_hash/ === x}.should be_true
@@ -123,6 +125,10 @@ describe Leadtune::Prospect do
   end
 
   context("decision") do
+    before(:each) do
+      subject.instance_variable_set("@method", "POST")
+    end
+
     it "must not be empty" do 
       subject.decision = {}
 
@@ -171,12 +177,20 @@ describe Leadtune::Prospect do
   describe "#get" do
     before(:each) do
       stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
+      subject.instance_variable_set("@method", "GET")
+      subject.prospect_id = "deadfish"
     end
 
     it "loads the browser_family factor" do
       subject.get
 
       subject.browser_family.should == "Firefox"
+    end
+
+    it "requires either prospect_id or prospect_ref" do
+      subject.prospect_id = subject.prospect_ref = nil
+      subject.should_not be_valid
+      subject.errors[:base].any? {|e| /prospect_id or prospect_ref/ === e}.should be_true
     end
     
   end
@@ -209,9 +223,9 @@ describe Leadtune::Prospect do
           stub_request(:any, /.*leadtune.*/).to_return(:status => code.to_i)
         end
 
-        it "raises a HttpError" do
+        it "raises a LeadtuneError" do
           pending "webmock allowing Curb callbacks" do
-            lambda {subject.post}.should raise_error(Leadtune::Prospect::HttpError)
+            lambda {subject.post}.should raise_error(Leadtune::LeadtuneError)
           end
         end
       end

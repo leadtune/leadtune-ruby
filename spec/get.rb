@@ -17,11 +17,11 @@ begin
   p.get
   pp p.factors
 
-  pp Leadtune::Prospect.new({:prospect_id => "4c92f0e3b34601dd1ecac030",
+  pp Leadtune::Prospect.new({:prospect_id => "4c92f8d6b34601dd5ecac030",
                              :username => "admin@acme.edu",
                              :password => "admin",
                              :organization => "AcmeU",}).get.factors
-rescue Leadtune::Prospect::HttpError => e
+rescue Leadtune::LeadtuneError => e
   puts e.to_s
 end
 
