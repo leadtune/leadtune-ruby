@@ -9,66 +9,52 @@ module Leadtune
           include ActiveModel::Validations
 
           validates_presence_of :username, :password, :organization
-          validates_presence_of :event, :decision, 
-                                :if => lambda {"POST" == @method.to_s.upcase}
-          validate :email_or_email_hash_required, 
-                   :validate_decision,
-                   :prospect_id_or_prospect_ref_required
+          validates :instance_validations
+        end
+      end
 
-          def validate_decision
-            return if @decision.nil?
-            return unless decision_required?
+      def instance_validations
+        case @http_method_for_validations
+        when "delete"
+          validates_with DeleteValidator 
+        when "get"
+          validates_with GetValidator 
+        when "post"
+          validates_with PostValidator 
+        when "put"
+          validates_with PutValidator 
+        else
+          raise NotImplementedError.new("Don't know how to validate for method: #{@http_method_for_validation.inspect}")
+        end
+      end
 
-            if @decision.empty?
-              errors.add(:decision, "must not be empty")
-            end
+      alias_method :run_validations_with_method!, :run_validations!
+      alias_method :run_validations!, :run_validations_without_method!
 
-            unless @decision.is_a?(Hash)
-              errors.add(:decision, "must be a Hash")
-            end
+      def run_validations_without_method!
+        raise NotImplementedError.new("Use run_validations_for_x! Where x is one of DELETE, GET, POST, or PUT.")
+      end
 
-            unless @decision.keys.include?("target_buyers")
-              errors.add(:decision, "required key \"target_buyers\" not found")
-            end
+      def valid?
+        raise NotImplementedError.new("Use valid_for_x? Where x in one of DELETE, GET, POST, or PUT.")
+      end
 
-            unless target_buyers_is_enumerable?
-              errors.add(:decision, "\"target_buyers\" must be Enumerable")
-            end
-          end
+      ["delete", "get", "post", "put",].each do |method|
+        define_method("run_validations_for_#{method}!") do
+          @http_method_for_validations = method
+          run_validations_with_method!
+        end
 
-          def email_or_email_hash_required
-            return unless email_or_email_hash_required?
+        define_method("invalid_for_#{method}?") do
+          !send("valid_for_#{method}?")
+        end
 
-            unless ["email_hash", "email"].any? {|f| @factors[f].present?}
-              errors.add(:base, "email or email_hash are required fields")
-            end
-          end
+        define_method("valid_for_#{method}?") do
+          send("run_validations_for_#{method}!")
+        end
 
-          def prospect_id_or_prospect_ref_required
-            return unless prospect_id_or_prospect_ref_required?
-
-            unless ["prospect_id", "prospect_ref"].any? {|f| @factors[f].present?}
-              errors.add(:base, "prospect_id or prospect_ref are required fields")
-            end
-          end
-
-
-          private
-
-          def prospect_id_or_prospect_ref_required?
-            ["DELETE", "GET", "PUT",].include?(@method.to_s.upcase)
-          end
-          def post_or_put?
-            ["POST", "PUT",].include?(@method.to_s.upcase)
-          end
-          alias_method :email_or_email_hash_required?, :post_or_put?
-          alias_method :decision_required?, :post_or_put?
-
-          def target_buyers_is_enumerable?
-            @decision["target_buyers"] && 
-              @decision["target_buyers"].is_a?(Enumerable)
-          end
-
+        define_method("#{method}?") do
+          @http_method_for_validations == method
         end
       end
 
