@@ -1,4 +1,11 @@
-# -*- encoding: utf-8 -*-
+# -*- encoding: utf-8; mode: ruby; -*-
+
+# LeadTune API Ruby Gem
+#
+# http://github.com/leadtune/leadtune-ruby
+# Eric Wollesen (mailto:devs@leadtune.com)
+# Copyright 2010 LeadTune LLC
+
 require File.expand_path("../lib/leadtune/version", __FILE__)
 
 Gem::Specification.new do |s|

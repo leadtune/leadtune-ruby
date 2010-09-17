@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+# LeadTune API Ruby Gem
+#
+# http://github.com/leadtune/leadtune-ruby
+# Eric Wollesen (mailto:devs@leadtune.com)
+# Copyright 2010 LeadTune LLC
+
 require "rubygems"
 require "curb"
 require "time"

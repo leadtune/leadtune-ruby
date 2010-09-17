@@ -8,9 +8,6 @@ require "yaml"
 require "curb"
 require "uri"
 
-require "array_extensions"
-require "hash_extensions"
-require "object_extensions"
 require "leadtune/appraisals"
 require "leadtune/rest"
 require "leadtune/config"
@@ -21,8 +18,7 @@ module Leadtune
   # Simplify the process of submitting prospects to LeadTune for duplicate
   # checking and appraisal.
   # 
-  # For details about the LeadTune Seller API, see:
-  # http://leadtune.com/api/seller
+  # For details about the LeadTune API, see: http://leadtune.com/api
   #
   #  require "rubygems"
   #  require "leadtune"
