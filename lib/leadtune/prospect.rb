@@ -13,6 +13,7 @@ require "array_extensions"
 require "hash_extensions"
 require "object_extensions"
 require "leadtune/appraisals"
+require "leadtune/rest"
 
 
 module Leadtune
@@ -82,10 +83,9 @@ module Leadtune
   # === Instance Methods
   #
   # You can also set your username, password, and organization by calling the
-  # Leadtune::Prospect object's <tt>\#username</tt>, <tt>\#password</tt>, and
-  # <tt>\#organization</tt> methods. <em>These values take precedence over
-  # values read from environment variables, a configuration file, or the
-  # factors hash.</em>
+  # Leadtune::Prospect object's #username=, #password=, and #organization=
+  # methods. <em>These values take precedence over values read from
+  # environment variables, a configuration file, or the factors hash.</em>
   #
   # == Dynamic Factor Access
   #
@@ -109,7 +109,7 @@ module Leadtune
   # or the #leadtune_host method as well.
 
   class Prospect
-    attr_accessor :decision, :environment, :username, :password, :timeout #:nodoc:
+    attr_accessor :decision  #:nodoc:
 
     # Initialize a new Leadtune::Prospect object.  
     #
@@ -121,6 +121,7 @@ module Leadtune
       @factors = {}
       @decision = nil
       @config = {}
+      @rest = Rest.new
 
       load_config_file(args.first)
       load_options(args.extract_options!)
@@ -147,20 +148,16 @@ module Leadtune
     # Requires that either +prospect_id+ or +prospect_ref+ be set.
 
     def get
-      curl = build_curl_easy_object_get
-      curl.http("GET")
-
-      parse_response(curl.body_str)
+      json = @rest.get(self)
+      parse_response(json)
       self
     end
 
     # Post this prospect to the LeadTune Appraiser service.
 
     def post
-      curl = build_curl_easy_object_post
-      curl.http("POST")
-
-      parse_response(curl.body_str)
+      json = @rest.post(self)
+      parse_response(json)
       self
     end
 
@@ -205,19 +202,6 @@ module Leadtune
       @decision["target_buyers"] ||= []
     end
 
-    def timeout #:nodoc:
-      @timeout ||= 
-        (ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
-    end
-
-    def username #:nodoc:
-      @username ||= ENV["LEADTUNE_USERNAME"] || @config["username"]
-    end
-
-    def password #:nodoc:
-      @password ||= ENV["LEADTUNE_PASSWORD"] || @config["password"]
-    end
-
     def organization #:nodoc:
       @factors["organization"] ||= 
         ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
@@ -239,6 +223,7 @@ module Leadtune
 
       if @config_file
         @config = YAML::load(@config_file)
+        @rest.config = @config
       end
     end
 
@@ -255,66 +240,9 @@ module Leadtune
                      end
     end
 
-    def environment #:nodoc:
-      @environment ||= production_environment_detected? ? :production : :sandbox
-    end
-
-    def production_environment_detected? #:nodoc:
-      if ENV.include?("APP_ENV")
-        "production" == ENV["APP_ENV"]
-      else
-        defined?(Rails) && Rails.env.production? ||
-          "production" == ENV["RACK_ENV"] ||
-          "production" == ENV["RAILS_ENV"] ||
-          defined?(RAILS_ENV) && "production" == RAILS_ENV
-      end
-    end
-
-    def build_curl_easy_object(&block) #:nodoc:
-      Curl::Easy.new do |curl|
-        curl.http_auth_types = [:basic,]
-        curl.username = username
-        curl.password = password
-        curl.timeout = timeout 
-        curl.headers = default_headers
-        curl.on_failure do |curl, code|
-          raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
-        end
-        #curl.verbose = true
-        yield curl
-      end
-    end
-
-    def default_headers #:nodoc:
-      {"Content-Type" => "application/json",
-       "Accept" => "application/json",}
-    end
-
-    def build_curl_easy_object_post #:nodoc:
-      build_curl_easy_object do |curl|
-        curl.url = URI.join(leadtune_host, "/prospects").to_s
-        curl.post_body = @factors.merge(:decision => @decision).to_json
-      end
-    end
-
-    def build_curl_easy_object_get #:nodoc:
-      build_curl_easy_object do |curl|
-        curl.url = build_get_url
-      end
-    end
-
-    def build_get_url #:nodoc:
-      path = "/prospects"
-      path += "/#{prospect_id}" if prospect_id
-      params = {:organization => organization,}
-      params.merge!(:prospect_ref => prospect_ref) if prospect_ref
-
-      URI.join(leadtune_host, path, "?" + params.to_params).to_s
-    end
-
     def load_options(options) #:nodoc:
-      self.username = options.delete("username") if options.include?("username")
-      self.password = options.delete("password") if options.include?("password")
+      @rest.username = options.delete("username") if options.include?("username")
+      @rest.password = options.delete("password") if options.include?("password")
       load_factors(options)
     end
 
@@ -324,16 +252,15 @@ module Leadtune
       end
     end
 
-    def parse_response(json) #:nodoc:
-      json_obj = JSON::parse(json)
-      load_decision(json_obj)
-      load_factors(json_obj)
+    def parse_response(response) #:nodoc:
+      load_decision(response)
+      load_factors(response)
     end
 
-    def load_decision(json_obj) #:nodoc:
-      return unless json_obj.include?("decision")
+    def load_decision(response) #:nodoc:
+      return unless response.include?("decision")
 
-      @decision = json_obj.delete("decision")
+      @decision = response.delete("decision")
       if @decision.include?("appraisals")
         @decision["appraisals"] = Appraisals.new(@decision["appraisals"])
       end
@@ -366,31 +293,6 @@ module Leadtune
       end
     end
 
-    # Override the normal host
-
-    def leadtune_host=(host) #:nodoc:
-      @leadtune_host = host
-    end
-
-    def leadtune_host #:nodoc:
-      @leadtune_host || 
-        ENV["LEADTUNE_HOST"] || 
-        @config["host"] || 
-        LEADTUNE_HOSTS[environment]
-    end
-
-    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
-    LEADTUNE_HOST_PRODUCTION = "https://appraiser.leadtune.com".freeze
-
-    LEADTUNE_HOSTS = {
-      :production => LEADTUNE_HOST_PRODUCTION,
-      :sandbox => LEADTUNE_HOST_SANDBOX,
-    }
-
-    DEFAULT_TIMEOUT = 5
-
-    @@factors_loaded = false
-    @@factors = []
 
   end
 end
