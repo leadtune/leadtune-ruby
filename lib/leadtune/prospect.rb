@@ -10,6 +10,7 @@ require "curb"
 require "uri"
 
 require "array_extensions"
+require "hash_extensions"
 require "object_extensions"
 require "leadtune/appraisals"
 
@@ -132,7 +133,25 @@ module Leadtune
       block.call(self) if block_given?
     end
 
-    # Post this lead to the LeadTune Appraiser service.
+    def self.get(options={})
+      new(options).get
+    end
+
+    def self.post(options={})
+      new(options).post
+    end
+
+    # Get a prospect from LeadTune.
+
+    def get
+      curl = build_curl_easy_object_get
+      curl.http("GET")
+
+      parse_response(curl.body_str)
+      self
+    end
+
+    # Post this prospect to the LeadTune Appraiser service.
 
     def post
       curl = build_curl_easy_object
@@ -142,7 +161,7 @@ module Leadtune
       self
     end
 
-    # The unique +decision_id+ for this Response.
+    # The unique +decision_id+ for this prospect.
 
     def decision_id
       @decision ||= {}
@@ -184,20 +203,6 @@ module Leadtune
 
     def leadtune_host=(host) #:nodoc:
       @leadtune_host = host
-    end
-
-    def get(options={})
-      load_options(options)
-
-      curl = build_curl_easy_object_get
-      curl.http("GET")
-
-      parse_response(curl.body_str)
-      self
-    end
-
-    def self.get(options={})
-      new(options).get
     end
 
     # Assign an array of organization codes for the prospects target buyers.
@@ -331,7 +336,7 @@ module Leadtune
 
     def build_curl_easy_object_get #:nodoc:
       Curl::Easy.new do |curl|
-        curl.url = URI.join(leadtune_host, "/prospects#{prospect_id.present? ? "/#{prospect_id}": ""}?organization=#{organization}&prospect_ref=#{prospect_ref}").to_s
+        curl.url = build_get_url
 
         curl.timeout = timeout 
         curl.http_auth_types = [:basic,]
@@ -343,6 +348,15 @@ module Leadtune
           raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
         end
       end
+    end
+
+    def build_get_url
+      path = "/prospects"
+      path += "/#{prospect_id}" if prospect_id
+      params = {:organization => organization,}
+      params.merge!(:prospect_ref => prospect_ref) if prospect_ref
+
+      URI.join(leadtune_host, path, "?" + params.to_params).to_s
     end
 
     def load_options(options) #:nodoc:

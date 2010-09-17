@@ -24,3 +24,4 @@ p = Leadtune::Prospect.new do |p|
 end
 
 pp p.post.factors
+pp p.decision_id
