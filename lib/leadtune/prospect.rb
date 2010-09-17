@@ -240,7 +240,8 @@ module Leadtune
     end
 
     def self.default_factors_file #:nodoc:
-      File.open("/Users/ewollesen/src/uber/site/db/factors.yml") # FIXME: magic
+      File.open(File.join(File.dirname(__FILE__), 
+                          "../../../uber/site/db/factors.yml")) # FIXME: magic
     end
 
     def load_config_file(config_file) #:nodoc:
