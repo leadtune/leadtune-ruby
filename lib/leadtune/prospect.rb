@@ -33,7 +33,7 @@ module Leadtune
   #    :event => "offers_prepared",            # required
   #    :email => "test@example.com"            # required
   #    :target_buyers => ["TB-LOL", "AcmeU",]  # required
-  #    ... include optional factors here, see #available_factors or http://leadtune.com/factors for details
+  #    ... include optional factors here, see http://leadtune.com/factors for details
   #  })
   #
   # <em>Or alternately</em>
@@ -89,9 +89,9 @@ module Leadtune
   #
   # == Dynamic Factor Access
   #
-  # Getter and setter methods are dynamically defined for each possible factor
-  # that can be specified.  To see a list of dynically defined factors, one
-  # can call the #factors method.
+  # Getter and setter methods are dynamically defined for factors as they're
+  # set. See http://leadtune.com/factors for a list of LeadTune recognized
+  # factors.
   #
   # == Automatic Environment Determination
   #
@@ -122,7 +122,6 @@ module Leadtune
       @decision = nil
       @config = {}
 
-      load_available_factors
       load_config_file(args.first)
       load_options(args.extract_options!)
 
@@ -175,27 +174,14 @@ module Leadtune
       @decision["appraisals"]
     end
 
-    # Return an array of the factors which can be specified.
-    #
-    # Each LeadTune recognized factor's name will be returned in this array.
-    # Additionally, each factor is available via getter and setter methods of
-    # the same name on the Response object, e.g. if a call to #factors
-    # includes a factor named +browser_family+, then the Prospect object will
-    # have methods named <tt>#browser_family</tt> and
-    # <tt>#browser_family=</tt>.
-    #
-    # See http://leadtune.com/factors for a detailed list of factors and their
-    # accepted values.
-
-    def available_factors
-      @@factors
-    end
-
+    # Return a hash of the factors specified for this Prospect.
+    
     def factors
       @factors
     end
 
     # Assign an array of organization codes for the prospects target buyers.
+
     def target_buyers=(target_buyers)
       unless target_buyers.is_a?(Array)
         raise ArgumentError.new("target_buyers must be an Array")
@@ -205,6 +191,7 @@ module Leadtune
     end
 
     # Return an array of organization codes for the prospect's target buyers.
+
     def target_buyers
       @decision ||= {}
       @decision["target_buyers"] ||= []
@@ -212,7 +199,7 @@ module Leadtune
 
     def timeout #:nodoc:
       @timeout ||= 
-        ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
+        (ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
     end
 
     def username
@@ -227,40 +214,17 @@ module Leadtune
       @factors["organization"] ||= 
         ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
     end
-
     
+    def prospect_id
+      @factors["prospect_id"]
+    end
+
+    def prospect_ref
+      @factors["prospect_ref"]
+    end
+
 
     private 
-
-    def load_available_factors #:nodoc:
-      self.class.load_available_factors
-    end
-
-    def self.load_available_factors(file=default_factors_file) #:nodoc:
-      return if @@factors_loaded
-      factors = YAML::load(file)
-      factors.sort {|x,y| x["code"] <=> y["code"]}.each do |factor|
-        @@factors << factor["code"]
-
-        unless instance_methods.include?(factor["code"]) 
-          define_method(factor["code"].to_sym) do
-            @factors[factor["code"]]
-          end
-        end
-
-        unless instance_methods.include?("#{factor["code"]}=") 
-          define_method(("%s=" % [factor["code"]]).to_sym) do |value|
-            @factors[factor["code"]] = value
-          end
-        end
-      end
-      @@factors_loaded = true
-    end
-
-    def self.default_factors_file #:nodoc:
-      File.open(File.join(File.dirname(__FILE__), 
-                          "../../../uber/site/db/factors.yml")) # FIXME: magic
-    end
 
     def load_config_file(config_file) #:nodoc:
       find_config_file(config_file)
@@ -347,11 +311,8 @@ module Leadtune
     end
 
     def load_factors(factors)
-      raise RuntimeError.new("must load factors first") unless @@factors_loaded
       factors.each_pair do |key, value|
-        if respond_to?("#{key}=")
-          self.send("#{key}=", value)
-        end
+        self.send("#{key}=", value)
       end
     end
 
@@ -367,6 +328,33 @@ module Leadtune
       @decision = json_obj.delete("decision")
       if @decision.include?("appraisals")
         @decision["appraisals"] = Appraisals.new(@decision["appraisals"])
+      end
+    end
+
+    def method_missing(name, *args, &block) #:nodoc
+      if /=$/ === name.to_s
+        memoize_new_factor(name)
+        self.send(name, *args, &block)
+      else
+        super
+      end
+    end
+
+    def memoize_new_factor(name) #:nodoc:
+      getter_name = name.to_s.sub(/=$/, "")
+
+      self.class.class_eval do
+        define_method(name) do |value|
+          @factors[getter_name] = value
+        end
+      end
+
+      unless respond_to?(getter_name)
+        self.class.class_eval do
+          define_method(getter_name) do
+            @factors[getter_name]
+          end
+        end
       end
     end
 

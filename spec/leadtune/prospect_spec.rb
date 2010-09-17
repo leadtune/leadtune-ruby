@@ -32,8 +32,20 @@ describe Leadtune::Prospect do
     end
   end
 
-  context("w/ username, password, & organization from ENV") do
+  context("when presented with an unrecognized factor") do
+    it "creates a setter and a getter by that name" do
+      fail "getter already exists" if subject.respond_to?(:my_new_factor)
+      fail "setter already exists" if subject.respond_to?(:my_new_factor=)
 
+      subject.my_new_factor = 5
+
+      subject.should respond_to(:my_new_factor=)
+      subject.should respond_to(:my_new_factor)
+      subject.my_new_factor.should == 5
+    end
+  end
+  
+  context("w/ username, password, & organization from ENV") do
     before(:all) do
       setup_leadtune_env
     end
@@ -43,7 +55,7 @@ describe Leadtune::Prospect do
     end
 
     subject {Leadtune::Prospect.new}
-
+    
     describe "#username" do
       specify {subject.username.should == "env@env.com"}
     end
@@ -67,9 +79,7 @@ describe Leadtune::Prospect do
       teardown_leadtune_env
     end
 
-    subject do
-      Leadtune::Prospect.new(leadtune_config_file)
-    end
+    subject {Leadtune::Prospect.new(leadtune_config_file)}
 
     describe "#username" do
       it "uses the ENV value over the config file" do
@@ -90,25 +100,9 @@ describe Leadtune::Prospect do
     end
   end
 
-  describe "#availble_factors" do
-    subject {Leadtune::Prospect.new.available_factors}
-
-    it {should_not include("decision")}
-    it {should include("browser_family")}
-    it {should include("browser_version")}
-    it {should include("organization")}
-  end
-
-  it "rejects undefined factors" do
-    lambda do
-      subject.my_factor = "foo"
-    end.should raise_error(NoMethodError, /my_factor=/)
-  end
-
   describe "#get" do
     before(:each) do
       stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
-      subject.instance_variable_set("@method", "GET")
       subject.prospect_id = "deadfish"
     end
 
@@ -211,12 +205,6 @@ EOF
       s.channel.should == "banner"
     end
 
-    it "silently ignores undefined factors in a Hash" do
-      s = Leadtune::Prospect.new({:bad_factor => "muahahaha!",})
-
-      s.should_not respond_to(:bad_factor)
-    end
-
     it "accepts a config_file as its (optional) first argument" do
       cf = StringIO.new <<EOF
 username: foo
@@ -286,5 +274,4 @@ EOF
      },
      :prospect_id => "deadbeef",}.to_json
   end
-
 end
