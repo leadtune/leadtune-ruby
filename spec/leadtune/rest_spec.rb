@@ -108,7 +108,6 @@ describe Leadtune::Rest do
     after(:all) {WebMock.disable_net_connect!}
 
     ["401", "404", "500"].each do |code|
-
       context("when a #{code} is returned") do
         it "raises a LeadtuneError" do
           mock_server(code) do
