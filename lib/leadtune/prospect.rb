@@ -40,7 +40,7 @@ module Leadtune
   #
   #  prospect = Leadtune::Prospect.post do |p|
   #    p.event = "offers_prepared"
-  #    p.organization = "LOL"   
+  #    p.email = "test@example.com"   
   #    ... and so on
   #  end
   #
@@ -67,17 +67,17 @@ module Leadtune
   #
   # === Environment Variables
   # 
-  # Your username, password, and organization can be specified in the
+  # Your LeadTune username, password, and organization can be specified in the
   # +LEADTUNE_USERNAME+, +LEADTUNE_PASSWORD+, and +LEADTUNE_ORGANIZATION+
   # environment variables. <em>These values take precedence over values read
-  # from a configuration file.</em>
+  # from the configuration file.</em>
   #
   # === Factors Hash
   #
   # When initializing your Prospect, simply include your username, password,
   # and organization along with any other factors you wish to
   # submit. <em>These values take precedence over values read from environment
-  # variables, or a configuration file.</em>
+  # variables, or the configuration file.</em>
   #
   # === Instance Methods
   #
@@ -96,11 +96,11 @@ module Leadtune
   # == Automatic Environment Determination
   #
   # At initialization, the Prospect class will attempt to determine your
-  # application's current environment.  If a production environment is
-  # detected, the Prospect will post prospects to LeadTune's production host.
-  # Otherwise prospects will be posted to LeadTune's sandbox host.  The
-  # environment can be overriden via the APP_ENV environment variable, which
-  # takes precedence over all other methods.
+  # application's current environment.  If a rack or rails production
+  # environment is detected, the Prospect will post prospects to LeadTune's
+  # production host.  Otherwise prospects will be posted to LeadTune's sandbox
+  # host.  The environment can be overriden via the +APP_ENV+ environment
+  # variable, which takes precedence over all other methods.
   #
   #--
   #
@@ -128,15 +128,23 @@ module Leadtune
       block.call(self) if block_given?
     end
 
+    # Get a prospect from the LeadTune Appraiser service.
+    #
+    # Requires that either +prospect_id+ or +prospect_ref+ be set.
+
     def self.get(options={}, &block)
       new(options, &block).get
     end
+
+    # Post a prospect to the LeadTune Appraiser service.
 
     def self.post(options={}, &block)
       new(options, &block).post
     end
 
-    # Get a prospect from LeadTune.
+    # Get a prospect from the LeadTune Appraiser service.
+    #
+    # Requires that either +prospect_id+ or +prospect_ref+ be set.
 
     def get
       curl = build_curl_easy_object_get
@@ -202,24 +210,24 @@ module Leadtune
         (ENV["LEADTUNE_TIMEOUT"] || @config["timeout"] || DEFAULT_TIMEOUT).to_i
     end
 
-    def username
+    def username #:nodoc:
       @username ||= ENV["LEADTUNE_USERNAME"] || @config["username"]
     end
 
-    def password
+    def password #:nodoc:
       @password ||= ENV["LEADTUNE_PASSWORD"] || @config["password"]
     end
 
-    def organization
+    def organization #:nodoc:
       @factors["organization"] ||= 
         ENV["LEADTUNE_ORGANIZATION"] || @config["organization"]
     end
     
-    def prospect_id
+    def prospect_id #:nodoc:
       @factors["prospect_id"]
     end
 
-    def prospect_ref
+    def prospect_ref #:nodoc:
       @factors["prospect_ref"]
     end
 
@@ -295,7 +303,7 @@ module Leadtune
       end
     end
 
-    def build_get_url
+    def build_get_url #:nodoc:
       path = "/prospects"
       path += "/#{prospect_id}" if prospect_id
       params = {:organization => organization,}
@@ -310,19 +318,19 @@ module Leadtune
       load_factors(options)
     end
 
-    def load_factors(factors)
+    def load_factors(factors) #:nodoc:
       factors.each_pair do |key, value|
         self.send("#{key}=", value)
       end
     end
 
-    def parse_response(json)
+    def parse_response(json) #:nodoc:
       json_obj = JSON::parse(json)
       load_decision(json_obj)
       load_factors(json_obj)
     end
 
-    def load_decision(json_obj)
+    def load_decision(json_obj) #:nodoc:
       return unless json_obj.include?("decision")
 
       @decision = json_obj.delete("decision")
@@ -331,7 +339,7 @@ module Leadtune
       end
     end
 
-    def method_missing(name, *args, &block) #:nodoc
+    def method_missing(name, *args, &block) #:nodoc:
       if /=$/ === name.to_s
         memoize_new_factor(name)
         self.send(name, *args, &block)
