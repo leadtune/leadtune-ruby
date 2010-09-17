@@ -215,6 +215,22 @@ module Leadtune
       @factors["prospect_ref"]
     end
 
+    def leadtune_host=(host)
+      @rest.leadtune_host = host
+    end
+
+    def leadtune_host
+      @rest.leadtune_host
+    end
+
+    def username=(username)
+      @rest.username = username
+    end
+
+    def password=(password)
+      @rest.password = password
+    end
+
 
     private 
 
