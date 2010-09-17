@@ -37,7 +37,5 @@ end
 
 task :default => [:spec, :cucumber,]
 
-YARD::Rake::YardocTask.new
-
 
 

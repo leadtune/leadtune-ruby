@@ -51,7 +51,6 @@ GEM
     tcpsocket-wait (1.0.0)
     term-ansicolor (1.0.5)
     trollop (1.16.2)
-    yard (0.6.1)
 
 PLATFORMS
   ruby
@@ -71,4 +70,3 @@ DEPENDENCIES
   ruby-debug
   tcpsocket-wait
   webmock!
-  yard
