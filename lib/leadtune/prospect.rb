@@ -110,7 +110,7 @@ module Leadtune
   # or the #leadtune_host method as well.
 
   class Prospect
-    attr_accessor :decision, :username, :password, :timeout #:nodoc:
+    attr_accessor :decision, :environment, :username, :password, :timeout #:nodoc:
 
     # Initialize a new Leadtune::Prospect object.  
     #
@@ -123,7 +123,6 @@ module Leadtune
       @decision = nil
       @config = {}
 
-      determine_environment
       load_available_factors
       load_config_file(args.first)
       load_authentication
@@ -255,25 +254,23 @@ module Leadtune
     end
 
     def find_config_file(config_file) #:nodoc:
-      case config_file
-      when String; @config_file = File.open(config_file)
-      when File, StringIO; @config_file = config_file
-      when nil
-        if File.exist?("leadtune.yml")
-          @config_file = File.open("leadtune.yml")
-        end
-      end
+      @config_file = case config_file
+                     when String
+                       File.open(config_file)
+                     when File, StringIO
+                       config_file
+                     when nil
+                       if File.exist?("leadtune.yml")
+                         File.open("leadtune.yml") 
+                       end
+                     end
     end
 
-    def determine_environment #:nodoc:
-      if production_detected?
-        @environment = :production
-      else
-        @environment = :sandbox
-      end
+    def environment #:nodoc:
+      @environment ||= production_environment_detected? ? :production : :sandbox
     end
 
-    def production_detected? #:nodoc:
+    def production_environment_detected? #:nodoc:
       if ENV.include?("APP_ENV")
         "production" == ENV["APP_ENV"]
       else
@@ -282,10 +279,6 @@ module Leadtune
           "production" == ENV["RAILS_ENV"] ||
           defined?(RAILS_ENV) && "production" == RAILS_ENV
       end
-    end
-
-    def production? #:nodoc:
-      :production == @environment
     end
 
     def load_authentication #:nodoc:
@@ -380,7 +373,7 @@ module Leadtune
       @leadtune_host || 
         ENV["LEADTUNE_HOST"] || 
         @config["host"] || 
-        LEADTUNE_HOSTS[@environment]
+        LEADTUNE_HOSTS[environment]
     end
 
     LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
