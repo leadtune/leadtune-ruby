@@ -4,6 +4,10 @@
 # Eric Wollesen (mailto:devs@leadtune.com)
 # Copyright 2010 LeadTune LLC
 
+require "tempfile"
+require "webrick"
+require "tcpsocket-wait"
+
 require "spec_helper"
 
 describe Leadtune::Rest do
@@ -98,37 +102,17 @@ describe Leadtune::Rest do
     end
   end
 
-  describe "#post" do
-    before(:each) do
-      # requests are stubbed by json_factors_should_include
-    end
+  describe "#post (slow)" do
 
-    # it "converts required factors to JSON" do
-    #   expected_factors = {"event" => subject.event,
-    #                       "organization" => subject.organization,
-    #                       "decision" => subject.decision,}
-    #   json_factors_should_include(expected_factors)
-
-    #   subject.post(null_prospect)
-    # end
-
-    # it "converts optional factors to JSON" do
-    #   subject.channel = "banner"
-    #   expected_factors = {"channel" => subject.channel,}
-    #   json_factors_should_include(expected_factors)
-
-    #   subject.post(null_prospect)
-    # end
+    before(:all) {WebMock.allow_net_connect!}
+    after(:all) {WebMock.disable_net_connect!}
 
     ["401", "404", "500"].each do |code|
-      context("when a #{code} is returned") do
-        before(:each) do
-          stub_request(:any, /.*leadtune.*/).to_return(:status => code.to_i)
-        end
 
+      context("when a #{code} is returned") do
         it "raises a LeadtuneError" do
-          pending "webmock allowing Curb callbacks" do
-            lambda {subject.post}.should raise_error(Leadtune::LeadtuneError)
+          mock_server(code) do
+            lambda {subject.post(null_prospect)}.should raise_error(Leadtune::LeadtuneError)
           end
         end
       end
@@ -224,4 +208,37 @@ timeout: 7
 EOF
     Leadtune::Config.new(config_file)
   end
+
+  def mock_server(code, &block)
+    quietly do
+      server = WEBrick::HTTPServer.new(:Port => THREADED_MOCK_SERVER_PORT)
+      server.mount_proc("/prospects") do |req, res|
+        res.body = "mock_server"
+        res.status = code
+      end
+
+      thread = Thread.new(server) {|s| s.start}
+
+      TCPSocket.wait_for_service_with_timeout({:host => "localhost", 
+                                               :port => THREADED_MOCK_SERVER_PORT,
+                                               :timeout => 10})
+      block.call
+      server.shutdown
+      thread.join
+    end
+  end
+
+  def quietly(&block)
+    old_stdout = old_stderr = nil
+
+    Tempfile.open("seller_spec") do |tf|
+      old_stdout, $stdout = $stdout, tf
+      old_stderr, $stderr = $stderr, tf
+      block.call(tf)
+    end
+    
+    $stdout, $stderr = old_stdout, old_stderr
+  end
+
+  THREADED_MOCK_SERVER_PORT = 9292
 end
