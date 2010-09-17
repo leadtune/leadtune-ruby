@@ -9,8 +9,8 @@ require "json"
 require "curb"
 require "uri"
 
+require "array_extensions"
 require "object_extensions"
-require "leadtune/prospect/validations"
 require "leadtune/appraisals"
 
 
@@ -109,8 +109,6 @@ module Leadtune
   # or the #leadtune_host method as well.
 
   class Prospect
-    include Validations
-
     attr_accessor :decision, :username, :password, :timeout #:nodoc:
 
     # Initialize a new Leadtune::Prospect object.  
@@ -137,9 +135,6 @@ module Leadtune
     # Post this lead to the LeadTune Appraiser service.
 
     def post
-      @method = "POST"
-      throw_validation_error unless run_validations!
-
       curl = build_curl_easy_object
       curl.http("POST")
 
@@ -193,8 +188,6 @@ module Leadtune
 
     def get(options={})
       load_options(options)
-      @method = "GET"
-      throw_validation_error unless run_validations!
 
       curl = build_curl_easy_object_get
       curl.http("GET")
@@ -224,10 +217,6 @@ module Leadtune
 
 
     private 
-
-    def throw_validation_error #:nodoc:
-      raise RuntimeError.new(errors.full_messages.inspect) 
-    end
 
     def self.load_available_factors(file=default_factors_file) #:nodoc:
       return if @@factors_loaded
@@ -384,11 +373,6 @@ module Leadtune
       if @decision.include?("appraisals")
         @decision["appraisals"] = Appraisals.new(@decision["appraisals"])
       end
-    end
-
-    # stolen from ActiveSupport
-    def extract_options!
-      last.is_a?(::Hash) ? pop : {}
     end
 
     LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze

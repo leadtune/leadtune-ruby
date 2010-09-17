@@ -14,40 +14,6 @@ describe Leadtune::Prospect do
     end
   end
 
-  context("is valid") do
-    it "with before(:each) defaults" do
-      subject.should be_valid
-    end
-
-    it "with an email_hash in place of an email" do
-      # NOTE: This is *not* how email_hash's are computed in production
-      subject.email_hash = Digest::SHA1.hexdigest(subject.email)
-      subject.email = nil
-
-      subject.should be_valid
-    end
-  end
-
-  context("is invalid") do
-    ["decision", "event", "organization", "username", "password",].each do |field|
-      it "without a(n) #{field}" do
-        subject.send("#{field}=", nil)
-        subject.instance_variable_set("@method", "POST")
-
-        subject.should_not be_valid
-        subject.errors[field].should_not be_empty
-      end
-    end
-
-    it "without either an email or an email_hash" do
-      subject.email = subject.email_hash = nil
-      subject.instance_variable_set("@method", "POST")
-
-      subject.should_not be_valid
-      subject.errors[:base].any? {|x| /email or email_hash/ === x}.should be_true
-    end
-  end
-
   context("w/ username, password, & organization from config_file") do
     subject do
       Leadtune::Prospect.new(leadtune_config_file)
@@ -124,41 +90,6 @@ describe Leadtune::Prospect do
     end
   end
 
-  context("decision") do
-    before(:each) do
-      subject.instance_variable_set("@method", "POST")
-    end
-
-    it "must not be empty" do 
-      subject.decision = {}
-
-      subject.should_not be_valid
-      subject.errors["decision"].should_not be_empty
-    end
-
-    context("\"target_buyers\" key") do
-      it "should be valid" do 
-        subject.decision = {"target_buyers" => ["bar", "baz",],}
-
-        subject.should be_valid
-      end
-
-      it "must exist" do 
-        subject.decision = {"foo" => ["bar", "baz"]}
-
-        subject.should_not be_valid
-        subject.errors["decision"].should_not be_empty
-      end
-
-      it "must be enumerable" do 
-        subject.decision = {"target_buyer" => 0}
-
-        subject.should_not be_valid
-        subject.errors["decision"].should_not be_empty
-      end
-    end
-  end
-
   describe "#availble_factors" do
     subject {Leadtune::Prospect.new.available_factors}
 
@@ -187,12 +118,6 @@ describe Leadtune::Prospect do
       subject.browser_family.should == "Firefox"
     end
 
-    it "requires either prospect_id or prospect_ref" do
-      subject.prospect_id = subject.prospect_ref = nil
-      subject.should_not be_valid
-      subject.errors[:base].any? {|e| /prospect_id or prospect_ref/ === e}.should be_true
-    end
-    
   end
 
   describe "#post" do

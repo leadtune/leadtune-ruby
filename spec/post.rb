@@ -15,7 +15,7 @@ p = Leadtune::Prospect.new do |p|
   p.organization = "LOL"
   p.username = "admin@loleads.com"
   p.password = "admin"
-  #p.email = "test@example.com"
+  p.email = "test@example.com"
   p.target_buyers = ["AcmeU", "Bravo", "ConvU",]
   #p.leadtune_host = "http://localhost:8080"
   unless /leadtune/ === p.send(:leadtune_host)
