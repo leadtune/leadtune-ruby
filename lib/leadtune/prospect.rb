@@ -20,89 +20,11 @@ module Leadtune
   # 
   # For details about the LeadTune API, see: http://leadtune.com/api
   #
-  #  require "rubygems"
-  #  require "leadtune"
-  #
-  #  prospect = Leadtune::Prospect.post({
-  #    :username => "admin@loleads.com"        # required (See Authentication)
-  #    :password => "secret"                   # required (See Authentication)
-  #    :organization => "LOL",                 # required (See Authentication)
-  #    :event => "offers_prepared",            # required
-  #    :email => "test@example.com"            # required
-  #    :target_buyers => ["TB-LOL", "AcmeU",]  # required
-  #    ... include optional factors here, see http://leadtune.com/factors for details
-  #  })
-  #
-  # <em>Or alternately</em>
-  #
-  #  prospect = Leadtune::Prospect.post do |p|
-  #    p.event = "offers_prepared"
-  #    p.email = "test@example.com"   
-  #    ... and so on
-  #  end
-  #
-  # == Authentication
-  #
-  # Authentication credentials can be specified in several methods, as
-  # detailed below:
-  #
-  # === Configuration File
-  #
-  # The configuration file can be specified when calling #new.  If no file is
-  # specified, the gem will also look for +leadtune.yml+ in the current
-  # directory.
-  #
-  # ==== Format
-  # 
-  # The configuration file is a YAML file, an example of which is:
-  #  username: me@mycorp.com
-  #  password: my_secret
-  #  organization: MYC
-  #--
-  #  host: http://localhost:8080
-  #++
-  #
-  # === Environment Variables
-  # 
-  # Your LeadTune username, password, and organization can be specified in the
-  # +LEADTUNE_USERNAME+, +LEADTUNE_PASSWORD+, and +LEADTUNE_ORGANIZATION+
-  # environment variables. <em>These values take precedence over values read
-  # from the configuration file.</em>
-  #
-  # === Factors Hash
-  #
-  # When initializing your Prospect, simply include your username, password,
-  # and organization along with any other factors you wish to
-  # submit. <em>These values take precedence over values read from environment
-  # variables, or the configuration file.</em>
-  #
-  # === Instance Methods
-  #
-  # You can also set your username, password, and organization by calling the
-  # Leadtune::Prospect object's #username=, #password=, and #organization=
-  # methods. <em>These values take precedence over values read from
-  # environment variables, a configuration file, or the factors hash.</em>
-  #
   # == Dynamic Factor Access
   #
   # Getter and setter methods are dynamically defined for factors as they're
   # set. See http://leadtune.com/factors for a list of LeadTune recognized
   # factors.
-  #
-  # == Automatic Environment Determination
-  #
-  # At initialization, the Prospect class will attempt to determine your
-  # application's current environment.  If a rack or rails production
-  # environment is detected, the Prospect will post prospects to LeadTune's
-  # production host.  Otherwise prospects will be posted to LeadTune's sandbox
-  # host.  The environment can be overriden via the +APP_ENV+ environment
-  # variable, which takes precedence over all other methods.
-  #
-  #--
-  #
-  # The host used by the Prospect object can be manually overriden via the
-  # LEADTUNE_HOST environment variable, the +host+ configuration file value,
-  # or the #leadtune_host method as well.
 
   class Prospect
     attr_accessor :decision  #:nodoc:
@@ -123,18 +45,24 @@ module Leadtune
     end
 
     # Get a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def self.get(options={}, &block)
       new(options, &block).get
     end
 
     # Post a prospect to the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def self.post(options={}, &block)
       new(options, &block).post
     end
 
     # Get a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def get
       json = @rest.get(self)
@@ -143,6 +71,8 @@ module Leadtune
     end
 
     # Post this prospect to the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def post
       json = @rest.post(self)
@@ -157,7 +87,7 @@ module Leadtune
       @decision["decision_id"]
     end
 
-    # The appraisals for this Response.
+    # The appraisals for this Prospect.
     #
     # The Array returned has been extended to include two methods,
     # +duplicates+ and +non_duplicates+.  Each returns the appraisals of the
@@ -174,7 +104,7 @@ module Leadtune
       @factors
     end
 
-    # Assign an array of organization codes for the prospects target buyers.
+    # Assign an array of organization codes for the prospect's target buyers.
 
     def target_buyers=(target_buyers)
       unless target_buyers.is_a?(Array)
@@ -203,11 +133,11 @@ module Leadtune
       @factors["prospect_ref"]
     end
 
-    def leadtune_host=(host)
+    def leadtune_host=(host) #:nodoc:
       @config.leadtune_host = host
     end
 
-    def leadtune_host
+    def leadtune_host #:nodoc:
       @config.leadtune_host
     end
 
@@ -219,7 +149,7 @@ module Leadtune
       @config.password = password
     end
 
-    def post_data
+    def post_data #:nodoc:
       @factors.merge("decision" => decision)
     end
 

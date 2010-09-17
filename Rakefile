@@ -21,6 +21,7 @@ require 'cucumber/rake/task'
 RSpec::Core::RakeTask.new
 Cucumber::Rake::Task.new
 Rake::RDocTask.new(:rdoc) do |rd|
+  rd.options << "-t LeadTune API Ruby Gem"
   rd.options << "--exclude=Gemfile"
   rd.options << "--exclude=TAGS"
   rd.options << "--exclude=Rakefile"

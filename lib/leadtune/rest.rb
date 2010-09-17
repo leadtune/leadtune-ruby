@@ -7,7 +7,7 @@
 require "json"
 
 module Leadtune
-  class Rest
+  class Rest #:nodoc:all
 
     def initialize(config)
       @config = config

@@ -5,23 +5,24 @@
 # Copyright 2010 LeadTune LLC
 
 module Leadtune
-  class Config 
 
-    attr_accessor :environment, :leadtune_host, :username, :password, :timeout #:nodoc:
+  class Config #:nodoc:all
+
+    attr_accessor :environment, :leadtune_host, :username, :password, :timeout
 
     def initialize(config_file=nil)
       load_config_file_values(config_file)
     end
 
-    def username #:nodoc:
+    def username
       @username ||= ENV["LEADTUNE_USERNAME"] || @config_file_values["username"]
     end
 
-    def password #:nodoc:
+    def password
       @password ||= ENV["LEADTUNE_PASSWORD"] || @config_file_values["password"]
     end
 
-    def timeout #:nodoc:
+    def timeout
       @timeout ||= (ENV["LEADTUNE_TIMEOUT"] || 
                     @config_file_values["timeout"] || 
                     DEFAULT_TIMEOUT).to_i
@@ -31,17 +32,17 @@ module Leadtune
       ENV["LEADTUNE_ORGANIZATION"] || @config_file_values["organization"]
     end
 
-    def leadtune_host #:nodoc:
+    def leadtune_host
       @leadtune_host ||= (ENV["LEADTUNE_HOST"] || 
                           @config_file_values["host"] ||
                           LEADTUNE_HOSTS[environment])
     end
 
-    def environment #:nodoc:
+    def environment
       @environment ||= production_environment_detected? ? :production : :sandbox
     end
 
-    def production_environment_detected? #:nodoc:
+    def production_environment_detected?
       if ENV.include?("APP_ENV")
         "production" == ENV["APP_ENV"]
       else
@@ -55,7 +56,7 @@ module Leadtune
 
     private
 
-    def load_config_file_values(config_file) #:nodoc:
+    def load_config_file_values(config_file)
       @config_file_values = {}
 
       find_config_file(config_file) do |config_file|
@@ -63,7 +64,7 @@ module Leadtune
       end
     end
 
-    def find_config_file(config_file) #:nodoc:
+    def find_config_file(config_file)
       case config_file
       when String
         yield File.open(config_file)
@@ -78,10 +79,8 @@ module Leadtune
 
 
     DEFAULT_TIMEOUT = 5
-
-    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
+    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze 
     LEADTUNE_HOST_PRODUCTION = "https://appraiser.leadtune.com".freeze
-
     LEADTUNE_HOSTS = {
       :production => LEADTUNE_HOST_PRODUCTION,
       :sandbox => LEADTUNE_HOST_SANDBOX,
