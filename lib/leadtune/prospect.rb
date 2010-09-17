@@ -60,6 +60,14 @@ module Leadtune
       new(options, &block).post
     end
 
+    # Update a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
+
+    def self.put(options={}, &block)
+      new(options, &block).put
+    end
+
     # Get a prospect from the LeadTune Appraiser service.
     #
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
@@ -76,6 +84,16 @@ module Leadtune
 
     def post
       json = @rest.post(self)
+      parse_response(json)
+      self
+    end
+
+    # Update a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
+
+    def put
+      json = @rest.put(self)
       parse_response(json)
       self
     end

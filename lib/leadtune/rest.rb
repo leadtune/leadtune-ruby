@@ -28,6 +28,13 @@ module Leadtune
       curl.body_str ? JSON::parse(curl.body_str) : {}
     end
 
+    def put(prospect)
+      @prospect = prospect
+      curl = build_curl_easy_object_put
+      curl.http("PUT")
+      curl.body_str ? JSON::parse(curl.body_str) : {}
+    end
+
 
     private
 
@@ -58,6 +65,14 @@ module Leadtune
       end
     end
 
+    def build_curl_easy_object_put #:nodoc:
+      build_curl_easy_object do |curl|
+        curl.url = build_put_url
+        #curl.verbose = true
+        curl.put_data = @prospect.post_data.to_json
+      end
+    end
+
     def build_curl_easy_object_get #:nodoc:
       build_curl_easy_object do |curl|
         curl.url = build_get_url
@@ -65,14 +80,18 @@ module Leadtune
     end
 
     def build_get_url #:nodoc:
-      path = "/prospects"
-      path += "/#{@prospect.prospect_id}" if @prospect.prospect_id
       params = {:organization => @prospect.organization,}
       if @prospect.prospect_ref
         params.merge!(:prospect_ref => @prospect.prospect_ref) 
       end
 
-      URI.join(@config.leadtune_host, path, "?" + params.to_params).to_s
+      URI.join(build_put_url, "?" + params.to_params).to_s
+    end
+
+    def build_put_url #:nodoc:
+      path = "/prospects"
+      path += "/#{@prospect.prospect_id}" if @prospect.prospect_id
+      URI.join(@config.leadtune_host, path).to_s
     end
 
   end
