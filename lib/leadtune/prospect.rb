@@ -122,7 +122,7 @@ module Leadtune
       @config = Config.new(args.first)
       @rest = Rest.new(@config)
 
-      load_options(args.extract_options!)
+      load_options_and_factors(args.extract_options!)
       block.call(self) if block_given?
     end
 
@@ -230,10 +230,16 @@ module Leadtune
 
     private 
 
-    def load_options(options) #:nodoc:
-      @rest.username = options.delete("username") if options.include?("username")
-      @rest.password = options.delete("password") if options.include?("password")
+    def load_options_and_factors(options) #:nodoc:
+      load_options(options)
       load_factors(options)
+    end
+
+    def load_options(options) #:nodoc:
+      @rest.username = options.delete("username") if options["username"]
+      @rest.password = options.delete("password") if options["password"]
+      @config.timeout = options.delete("timeout") if options["timeout"]
+      @config.leadtune_host = options.delete("timeout") if options["leadtune_host"]
     end
 
     def load_factors(factors) #:nodoc:
