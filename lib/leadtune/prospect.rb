@@ -25,24 +25,24 @@ module Leadtune
   #  require "rubygems"
   #  require "leadtune"
   #
-  #  prospect = Leadtune::Prospect.new do |p|
-  #    p.event = "offers_prepared"                           # required
-  #    p.organization = "LOL"                                # required
-  #    p.email = "test@example.com"                          # required
-  #    p.target_buyers = ["TB-LOL", "AcmeU",]                # required
-  #    p.username = "admin@loleads.com"                      # required
-  #    p.password = "secret"                                 # required
-  #    ... include other factors here, see #factors or http://leadtune.com/factors for details
-  #  end
-  #  response = prospect.post
+  #  prospect = Leadtune::Prospect.new({
+  #    :username => "admin@loleads.com"        # required (See Authentication)
+  #    :password => "secret"                   # required (See Authentication)
+  #    :organization => "LOL",                 # required (See Authentication)
+  #    :event => "offers_prepared",            # required
+  #    :email => "test@example.com"            # required
+  #    :target_buyers => ["TB-LOL", "AcmeU",]  # required
+  #    ... include optional factors here, see #available_factors or http://leadtune.com/factors for details
+  #  })
+  #  prospect.post
   #
   # <em>Or alternately</em>
   #
-  #  prospect = Leadtune::Prospect.new({
-  #    :event => "offers_prepared",
-  #    :organization => "LOL",
+  #  prospect = Leadtune::Prospect.new do |p|
+  #    p.event = "offers_prepared"
+  #    p.organization = "LOL"   
   #    ... and so on
-  #  })
+  #  end
   #
   # == Authentication
   #
@@ -72,12 +72,20 @@ module Leadtune
   # environment variables. <em>These values take precedence over values read
   # from a configuration file.</em>
   #
+  # === Factors Hash
+  #
+  # When initializing your Prospect, simply include your username, password,
+  # and organization along with any other factors you wish to
+  # submit. <em>These values take precedence over values read from environment
+  # variables, or a configuration file.</em>
+  #
   # === Instance Methods
   #
   # You can also set your username, password, and organization by calling the
   # Leadtune::Prospect object's <tt>\#username</tt>, <tt>\#password</tt>, and
   # <tt>\#organization</tt> methods. <em>These values take precedence over
-  # values read from environment variables, or a configuration file.</em>
+  # values read from environment variables, a configuration file, or the
+  # factors hash.</em>
   #
   # == Dynamic Factor Access
   #
@@ -109,6 +117,8 @@ module Leadtune
     #
     # [+config_file+] An optional filename or a file-like object, see
     #                 Authentication above.
+    # [+factors+]     A hash of factors with which to initialize the Prospect
+
     def initialize(*args, &block)
       @factors = {}
       @decision = nil
@@ -125,8 +135,6 @@ module Leadtune
     end
 
     # Post this lead to the LeadTune Appraiser service.
-    # 
-    # Returns a Response object.
 
     def post
       @method = "POST"
@@ -178,6 +186,7 @@ module Leadtune
     end
 
     # Override the normal host
+
     def leadtune_host=(host) #:nodoc:
       @leadtune_host = host
     end
