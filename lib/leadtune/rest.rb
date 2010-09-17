@@ -3,8 +3,8 @@ module Leadtune
 
     attr_accessor :environment, :leadtune_host, :username, :password, :timeout #:nodoc:
 
-    def initialize
-      @config = {}
+    def initialize(config)
+      @config = config
       @prospect = nil
     end
 
@@ -20,10 +20,6 @@ module Leadtune
       curl = build_curl_easy_object_post
       curl.http("POST")
       curl.body_str ? JSON::parse(curl.body_str) : {}
-    end
-
-    def config=(config)
-      @config = config
     end
 
     def leadtune_host #:nodoc:

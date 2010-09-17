@@ -14,6 +14,7 @@ require "hash_extensions"
 require "object_extensions"
 require "leadtune/appraisals"
 require "leadtune/rest"
+require "leadtune/config"
 
 
 module Leadtune
@@ -120,10 +121,9 @@ module Leadtune
     def initialize(*args, &block)
       @factors = {}
       @decision = nil
-      @config = {}
-      @rest = Rest.new
+      @config = Config.new(args.first)
+      @rest = Rest.new(@config)
 
-      load_config_file(args.first)
       load_options(args.extract_options!)
 
       block.call(self) if block_given?
@@ -234,28 +234,6 @@ module Leadtune
 
     private 
 
-    def load_config_file(config_file) #:nodoc:
-      find_config_file(config_file)
-
-      if @config_file
-        @config = YAML::load(@config_file)
-        @rest.config = @config
-      end
-    end
-
-    def find_config_file(config_file) #:nodoc:
-      @config_file = case config_file
-                     when String
-                       File.open(config_file)
-                     when File, StringIO
-                       config_file
-                     when nil
-                       if File.exist?("leadtune.yml")
-                         File.open("leadtune.yml") 
-                       end
-                     end
-    end
-
     def load_options(options) #:nodoc:
       @rest.username = options.delete("username") if options.include?("username")
       @rest.password = options.delete("password") if options.include?("password")
@@ -308,7 +286,6 @@ module Leadtune
         end
       end
     end
-
 
   end
 end

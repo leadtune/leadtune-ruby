@@ -2,15 +2,19 @@ require "spec_helper"
 
 describe Leadtune::Rest do
 
+  subject {Leadtune::Rest.new({})}
+
   context("w/ username & password from config_file") do
+
+    subject {Leadtune::Rest.new(rest_config)}
+
     before(:each) do
-      subject.config = YAML::load(leadtune_config_file) # FIXME
       @curl_easy = null_curl_easy
     end
 
     describe "#username" do
       it "uses the config_file value" do
-        @curl_easy.should_receive(:username=).with("config_file@config_file.com")
+        @curl_easy.should_receive(:username=).with("config@config.com")
 
         subject.get(null_prospect)
       end
@@ -18,7 +22,7 @@ describe Leadtune::Rest do
 
     describe "#password" do
       it "uses the config_file value" do
-        @curl_easy.should_receive(:password=).with("config_file_secret")
+        @curl_easy.should_receive(:password=).with("config_secret")
 
         subject.get(null_prospect)
       end
@@ -57,6 +61,8 @@ describe Leadtune::Rest do
 
   context("w/ username & password from ENV *AND* config_file") do
 
+    subject {Leadtune::Rest.new(rest_config)}
+
     before(:all) do
       setup_leadtune_env
     end
@@ -66,7 +72,6 @@ describe Leadtune::Rest do
     end
 
     before(:each) do
-      subject.config = YAML::load(leadtune_config_file) # FIXME
       @curl_easy = null_curl_easy
     end
 
@@ -160,12 +165,7 @@ describe Leadtune::Rest do
     end
 
     context("with timeout of 7 in config_file") do
-      before(:each) do
-        config_file = StringIO.new <<EOF
-timeout: 7
-EOF
-        subject.config = YAML::load(config_file) # FIXME
-      end
+      subject {Leadtune::Rest.new(rest_config)}
 
       it "is 7" do
         @curl_easy.should_receive(:timeout=).with(7)
@@ -208,5 +208,11 @@ EOF
     curl_easy = double(Curl::Easy, :body_str => "{}").as_null_object
     Curl::Easy.stub!(:new).and_yield(curl_easy).and_return(curl_easy)
     curl_easy
+  end
+
+  def rest_config
+    {"username" => "config@config.com", 
+     "password" => "config_secret", 
+     "timeout" => 7,}
   end
 end
