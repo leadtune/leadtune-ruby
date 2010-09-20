@@ -40,7 +40,7 @@ module Leadtune
       @config = Config.new(args.first)
       @rest = Rest.new(@config)
 
-      load_options_and_factors(args.extract_options!)
+      load_options_and_factors(Leadtune::Util.extract_options!(args))
       block.call(self) if block_given?
     end
 

@@ -89,7 +89,7 @@ module Leadtune
         params.merge!(:prospect_ref => @post_data["prospect_ref"]) 
       end
 
-      URI.join(build_put_url, "?" + params.to_params).to_s
+      URI.join(build_put_url, "?" + Leadtune::Util.to_params(params)).to_s
     end
 
     def build_put_url #:nodoc:

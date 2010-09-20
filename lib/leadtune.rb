@@ -7,10 +7,6 @@
 dir = File.dirname(__FILE__)
 $LOAD_PATH.unshift dir unless $LOAD_PATH.include?(dir)
 
-require "array_extensions"
-require "hash_extensions"
-
-
 # For details about the LeadTune API, see: http://leadtune.com/api
 
 module Leadtune #:nodoc:all
@@ -30,7 +26,7 @@ class Leadtune::LeadtuneError < RuntimeError
 end 
 
 
-
+require "leadtune/util"
 require "leadtune/prospect"
 require "leadtune/rest"
 require "leadtune/appraisals"

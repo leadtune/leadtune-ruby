@@ -36,7 +36,4 @@ end
 
 task :hudson => [:spec, :rdoc,]
 
-task :default => [:spec, :cucumber,]
-
-
-
+task :default => [:spec,]# :cucumber,]
