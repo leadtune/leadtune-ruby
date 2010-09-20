@@ -17,7 +17,18 @@ module Leadtune #:nodoc:all
 end
 
 # Raised when non-2XX responses are received.
-class Leadtune::LeadtuneError < RuntimeError ; end 
+class Leadtune::LeadtuneError < RuntimeError 
+  attr_reader :code, :message
+
+  def initialize(code, message)
+    @code, @message = code, message
+  end
+
+  def to_s
+    "#{@code} #{message}"
+  end
+end 
+
 
 
 require "leadtune/prospect"

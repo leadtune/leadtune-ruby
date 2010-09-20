@@ -10,26 +10,53 @@ module Leadtune
 
     attr_accessor :environment, :leadtune_host, :username, :password, :timeout
 
+    @@leadtune_host = nil
+    @@username = nil
+    @@password = nil
+    @@organization = nil
+    @@timeout = nil
+
     def initialize(config_file=nil)
       load_config_file_values(config_file)
     end
 
+    def self.username=(username)
+      @@username = username
+    end
+
+    def self.password=(password)
+      @@password = password
+    end
+
+    def self.organization=(organization)
+      @@organization = organization
+    end
+
+    def self.leadtune_host=(leadtune_host)
+      @@leadtune_host = leadtune_host
+    end
+
+    def self.timeout=(timeout)
+      @@timeout = timeout.to_i
+    end
+
     def username
-      @username ||= ENV["LEADTUNE_USERNAME"] || @config_file_values["username"]
+      @username ||= @@username || ENV["LEADTUNE_USERNAME"] || @config_file_values["username"]
     end
 
     def password
-      @password ||= ENV["LEADTUNE_PASSWORD"] || @config_file_values["password"]
+      @password ||= @@password || ENV["LEADTUNE_PASSWORD"] || @config_file_values["password"]
     end
 
     def timeout
-      @timeout ||= (ENV["LEADTUNE_TIMEOUT"] || 
+      @timeout ||= (@@timeout ||
+                    ENV["LEADTUNE_TIMEOUT"] || 
                     @config_file_values["timeout"] || 
                     DEFAULT_TIMEOUT).to_i
     end
 
     def organization
-      ENV["LEADTUNE_ORGANIZATION"] || @config_file_values["organization"]
+      @@organization || ENV["LEADTUNE_ORGANIZATION"] || @config_file_values["organization"]
     end
 
     def leadtune_host

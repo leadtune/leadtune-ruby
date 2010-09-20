@@ -5,5 +5,5 @@
 # Copyright 2010 LeadTune LLC
 
 module Leadtune
-  VERSION = "0.0.1"
+  VERSION = "0.0.2"
 end

@@ -9,30 +9,33 @@ require "json"
 module Leadtune
   class Rest #:nodoc:all
 
+    attr_reader :response
+
     def initialize(config)
       @config = config
       @post_data = nil
+      @response = {}
     end
 
     def get(post_data)
       @post_data = post_data
       curl = build_curl_easy_object_get
       curl.http("GET")
-      curl.body_str ? JSON::parse(curl.body_str) : {}
+      parse_response(curl.body_str)
     end
 
     def post(post_data)
       @post_data = post_data
       curl = build_curl_easy_object_post
       curl.http("POST")
-      curl.body_str ? JSON::parse(curl.body_str) : {}
+      parse_response(curl.body_str)
     end
 
     def put(post_data)
       @post_data = post_data
       curl = build_curl_easy_object_put
       curl.http("PUT")
-      curl.body_str ? JSON::parse(curl.body_str) : {}
+      parse_response(curl.body_str)
     end
 
 
@@ -46,9 +49,9 @@ module Leadtune
         curl.timeout = @config.timeout
         curl.headers = default_headers
         curl.on_failure do |curl, code|
-          raise LeadtuneError.new("#{curl.response_code} #{curl.body_str}")
+          raise LeadtuneError.new(curl.response_code, curl.body_str)
         end
-        #curl.verbose = true
+        # curl.verbose = true
         yield curl
       end
     end
@@ -62,14 +65,15 @@ module Leadtune
       build_curl_easy_object do |curl|
         curl.url = URI.join(@config.leadtune_host, "/prospects").to_s
         curl.post_body = @post_data.to_json
+        $stderr.puts curl.post_body if curl.verbose?
       end
     end
 
     def build_curl_easy_object_put #:nodoc:
       build_curl_easy_object do |curl|
         curl.url = build_put_url
-        #curl.verbose = true
         curl.put_data = @post_data.to_json
+        $stderr.puts curl.post_body if curl.verbose?
       end
     end
 
@@ -92,6 +96,10 @@ module Leadtune
       path = "/prospects"
       path += "/#{@post_data["prospect_id"]}" if @post_data["prospect_id"]
       URI.join(@config.leadtune_host, path).to_s
+    end
+
+    def parse_response(body)
+      @response = body ? JSON::parse(body) : {}
     end
 
   end

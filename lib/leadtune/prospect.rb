@@ -140,7 +140,7 @@ module Leadtune
     end
 
     def organization #:nodoc:
-      @factors["organization"] ||= @config.organization
+      @factors["organization"] || @config.organization
     end
     
     def prospect_id #:nodoc:
@@ -167,23 +167,33 @@ module Leadtune
       @config.password = password
     end
 
+    def response
+      @rest.response
+    end
+
+    def payload
+      post_data.reject {|k,v| CURL_OPTIONS.include?(k)}
+    end
+
 
     private 
 
+    CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",]
+
     def post_data #:nodoc:
-      @factors.merge("decision" => decision)
+      @factors.merge("decision" => @decision, 
+                     "organization" => @config.organization)
     end
 
     def load_options_and_factors(options) #:nodoc:
-      load_options(options)
+      load_curl_options(options)
       load_factors(options)
     end
 
-    def load_options(options) #:nodoc:
-      @rest.username = options.delete("username") if options["username"]
-      @rest.password = options.delete("password") if options["password"]
-      @config.timeout = options.delete("timeout") if options["timeout"]
-      @config.leadtune_host = options.delete("timeout") if options["leadtune_host"]
+    def load_curl_options(options) #:nodoc:
+      CURL_OPTIONS.each do |option|
+        @config.send("#{option}=", options.delete(option)) if options[option]
+      end
     end
 
     def load_factors(factors) #:nodoc:
@@ -193,6 +203,7 @@ module Leadtune
     end
 
     def parse_response(response) #:nodoc:
+      response = response.dup
       load_decision(response)
       load_factors(response)
     end

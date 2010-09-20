@@ -2,6 +2,8 @@
 
 http://github.com/leadtune/leadtune-ruby
 
+https://rubygems.org/gems/leadtune
+
 Copyright 2010 LeadTune, LLC
 
 Eric Wollesen (mailto:devs@leadtune.com)
@@ -37,19 +39,30 @@ Your LeadTune username, password, and organization can be specified in the
 environment variables. <em>These values take precedence over values read
 from the configuration file.</em>
 
+=== Rack Initializer
+
+ # config/initializers/leadtune.rb
+ Leadtune::Config.username = "me@mycorp.com"
+ Leadtune::Config.password = "my_secret"
+ Leadtune::Config.organization = "MYC"
+
+<em>These values take precedence over values read from environment variables
+or configuration file.</em>
+
 === Factors Hash
 
 When initializing your Leadtune::Prospect, you can include your username,
 password, and organization along with any factors you wish to
-submit. <em>These values take precedence over values read from environment
-variables, or the configuration file.</em>
+submit. <em>These values take precedence over values read from rack
+initializers, environment variables, or the configuration file.</em>
 
 === Instance Methods
 
 You can also set your username, password, and organization by calling the
 Leadtune::Prospect object's #username=, #password=, and #organization=
-methods. <em>These values take precedence over values read from
-environment variables, a configuration file, or the factors hash.</em>
+methods. <em>These values take precedence over values read from the factors
+hash, rack initializers, environment variables, or the configuration
+file.</em>
 
 == Example Usage
 
