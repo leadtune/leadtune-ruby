@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "ruby-debug"
   s.add_development_dependency "rspec", "= 2.0.0.beta.19"
   s.add_development_dependency "rspec-core", "= 2.0.0.beta.19"
-  s.add_development_dependency "rspec-expectation", "= 2.0.0.beta.19"
+  s.add_development_dependency "rspec-expectations", "= 2.0.0.beta.19"
   s.add_development_dependency "rspec-mocks", "= 2.0.0.beta.19"
   s.add_development_dependency "webmock"#, "http://github.com/phiggins/webmock.git"
 
