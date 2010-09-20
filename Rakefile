@@ -34,6 +34,8 @@ task :clobber => [:clobber_rdoc,] do
   rm_rf "doc"
 end
 
+task :hudson => [:spec, :rdoc,]
+
 task :default => [:spec, :cucumber,]
 
 
