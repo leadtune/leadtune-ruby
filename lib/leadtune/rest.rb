@@ -11,25 +11,25 @@ module Leadtune
 
     def initialize(config)
       @config = config
-      @prospect = nil
+      @post_data = nil
     end
 
-    def get(prospect)
-      @prospect = prospect
+    def get(post_data)
+      @post_data = post_data
       curl = build_curl_easy_object_get
       curl.http("GET")
       curl.body_str ? JSON::parse(curl.body_str) : {}
     end
 
-    def post(prospect)
-      @prospect = prospect
+    def post(post_data)
+      @post_data = post_data
       curl = build_curl_easy_object_post
       curl.http("POST")
       curl.body_str ? JSON::parse(curl.body_str) : {}
     end
 
-    def put(prospect)
-      @prospect = prospect
+    def put(post_data)
+      @post_data = post_data
       curl = build_curl_easy_object_put
       curl.http("PUT")
       curl.body_str ? JSON::parse(curl.body_str) : {}
@@ -61,7 +61,7 @@ module Leadtune
     def build_curl_easy_object_post #:nodoc:
       build_curl_easy_object do |curl|
         curl.url = URI.join(@config.leadtune_host, "/prospects").to_s
-        curl.post_body = @prospect.post_data.to_json
+        curl.post_body = @post_data.to_json
       end
     end
 
@@ -69,7 +69,7 @@ module Leadtune
       build_curl_easy_object do |curl|
         curl.url = build_put_url
         #curl.verbose = true
-        curl.put_data = @prospect.post_data.to_json
+        curl.put_data = @post_data.to_json
       end
     end
 
@@ -80,9 +80,9 @@ module Leadtune
     end
 
     def build_get_url #:nodoc:
-      params = {:organization => @prospect.organization,}
-      if @prospect.prospect_ref
-        params.merge!(:prospect_ref => @prospect.prospect_ref) 
+      params = {:organization => @post_data["organization"],}
+      if @post_data["prospect_ref"]
+        params.merge!(:prospect_ref => @post_data["prospect_ref"]) 
       end
 
       URI.join(build_put_url, "?" + params.to_params).to_s
@@ -90,7 +90,7 @@ module Leadtune
 
     def build_put_url #:nodoc:
       path = "/prospects"
-      path += "/#{@prospect.prospect_id}" if @prospect.prospect_id
+      path += "/#{@post_data["prospect_id"]}" if @post_data["prospect_id"]
       URI.join(@config.leadtune_host, path).to_s
     end
 

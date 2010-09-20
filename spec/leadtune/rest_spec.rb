@@ -26,7 +26,7 @@ describe Leadtune::Rest do
       it "uses the config_file value" do
         @curl_easy.should_receive(:username=).with("config@config.com")
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -34,7 +34,7 @@ describe Leadtune::Rest do
       it "uses the config_file value" do
         @curl_easy.should_receive(:password=).with("config_secret")
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
   end
@@ -56,7 +56,7 @@ describe Leadtune::Rest do
       it "uses the ENV value" do
         @curl_easy.should_receive(:username=).with("env@env.com")
         
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -64,7 +64,7 @@ describe Leadtune::Rest do
       it "uses the ENV value" do
         @curl_easy.should_receive(:password=).with("env_secret")
         
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
   end
@@ -89,7 +89,7 @@ describe Leadtune::Rest do
       it "uses the ENV value over the config file" do
         @curl_easy.should_receive(:username=).with("env@env.com")
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -97,7 +97,7 @@ describe Leadtune::Rest do
       it "uses the ENV value over the config file" do
         @curl_easy.should_receive(:password=).with("env_secret")
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
   end
@@ -111,7 +111,7 @@ describe Leadtune::Rest do
       context("when a #{code} is returned") do
         it "raises a LeadtuneError" do
           mock_server(code) do
-            lambda {subject.post(null_prospect)}.should raise_error(Leadtune::LeadtuneError)
+            lambda {subject.post(mock_post_data)}.should raise_error(Leadtune::LeadtuneError)
           end
         end
       end
@@ -126,14 +126,14 @@ describe Leadtune::Rest do
     it "is passed on to Curl::Easy" do
       @curl_easy.should_receive(:timeout=).with(5)
 
-      subject.get(null_prospect)
+      subject.get(mock_post_data)
     end
 
     context("by default") do
       it "is 5" do
         @curl_easy.should_receive(:timeout=).with(5)
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -149,7 +149,7 @@ describe Leadtune::Rest do
       it "is 6" do
         @curl_easy.should_receive(:timeout=).with(6)
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -159,7 +159,7 @@ describe Leadtune::Rest do
       it "is 7" do
         @curl_easy.should_receive(:timeout=).with(7)
 
-        subject.get(null_prospect)
+        subject.get(mock_post_data)
       end
     end
 
@@ -189,8 +189,8 @@ describe Leadtune::Rest do
      :prospect_id => "deadbeef",}.to_json
   end
 
-  def null_prospect
-    double(Leadtune::Prospect, :prospect_id => "deadbeef").as_null_object
+  def mock_post_data
+    {"prospect_id" => "deadbeef",}
   end
 
   def null_curl_easy

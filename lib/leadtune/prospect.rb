@@ -73,7 +73,7 @@ module Leadtune
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def get
-      json = @rest.get(self)
+      json = @rest.get(post_data)
       parse_response(json)
       self
     end
@@ -83,7 +83,7 @@ module Leadtune
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def post
-      json = @rest.post(self)
+      json = @rest.post(post_data)
       parse_response(json)
       self
     end
@@ -93,7 +93,7 @@ module Leadtune
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
     def put
-      json = @rest.put(self)
+      json = @rest.put(post_data)
       parse_response(json)
       self
     end
@@ -167,12 +167,12 @@ module Leadtune
       @config.password = password
     end
 
+
+    private 
+
     def post_data #:nodoc:
       @factors.merge("decision" => decision)
     end
-
-
-    private 
 
     def load_options_and_factors(options) #:nodoc:
       load_options(options)

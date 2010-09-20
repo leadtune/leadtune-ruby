@@ -97,9 +97,14 @@ describe Leadtune::Prospect do
     end
 
     it "includes decision" do
+      rest = double(Leadtune::Rest).as_null_object
+      Leadtune::Rest.stub!(:new).and_return(rest)
       expected_factors = {"decision" => subject.decision,}
+      subject.stub(:parse_response)
 
-      subject.post_data.should include(expected_factors)
+      rest.should_receive(:post).with {|hash| hash.should include(expected_factors)}
+
+      subject.post
     end
   end
 
