@@ -6,18 +6,17 @@
 
 require "spec_helper"
 
-class Leadtune::Config
-  def self.reset_class_vars
-    @@timeout = nil
-    @@organization = nil
-    @@username = nil
-    @@password = nil
-  end
-end
-
 describe Leadtune::Config do
-  before(:each) {Leadtune::Config.reset_class_vars}
-  after(:each) {Leadtune::Config.reset_class_vars}
+  before(:each) {teardown_initializer}
+  after(:each) {teardown_initializer}
+
+  it "reads environment from APP_ENV" do
+    ENV["APP_ENV"] = "production"
+
+    subject.environment.should == :production
+
+    ENV.delete("APP_ENV")
+  end
 
   context("can set") do
     it "password" do
@@ -42,6 +41,12 @@ describe Leadtune::Config do
       Leadtune::Config.organization = "ORG"
 
       Leadtune::Config.new.organization.should == "ORG"
+    end
+
+    it "leadtune_host" do
+      Leadtune::Config.leadtune_host = "http://bad_url_for_test"
+
+      Leadtune::Config.new.leadtune_host.should == "http://bad_url_for_test"
     end
   end
 end

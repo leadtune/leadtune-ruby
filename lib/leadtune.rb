@@ -14,13 +14,18 @@ end
 
 # Raised when non-2XX responses are received.
 class Leadtune::LeadtuneError < RuntimeError 
-  attr_reader :code, :message
+
+  # HTTP status code
+  attr_reader :code
+
+  # Any body text included with the response
+  attr_reader :message 
 
   def initialize(code, message)
     @code, @message = code, message
   end
 
-  def to_s
+  def to_s #:nodoc:
     "#{@code} #{message}"
   end
 end 

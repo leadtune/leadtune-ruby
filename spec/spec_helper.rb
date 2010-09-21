@@ -14,22 +14,19 @@ RSpec.configure do |config|
   config.include WebMock
 end
 
-def setup_leadtune_env
-  ENV["LEADTUNE_USERNAME"] = "env@env.com"
-  ENV["LEADTUNE_PASSWORD"] = "env_secret"
-  ENV["LEADTUNE_ORGANIZATION"] = "env_org"
+def setup_initializer
+  Leadtune::Config.username = "init_user"
+  Leadtune::Config.password = "init_secret"
+  Leadtune::Config.timeout = 7
+  Leadtune::Config.organization = "init_org"
+  Leadtune::Config.leadtune_host = "http://localhost.init"
 end
 
-def teardown_leadtune_env
-  ENV.delete("LEADTUNE_USERNAME")
-  ENV.delete("LEADTUNE_PASSWORD")
-  ENV.delete("LEADTUNE_ORGANIZATION")
+def teardown_initializer
+  Leadtune::Config.username = nil
+  Leadtune::Config.password = nil
+  Leadtune::Config.timeout = nil
+  Leadtune::Config.organization = nil
+  Leadtune::Config.leadtune_host = nil
 end
 
-def leadtune_config_file
-  StringIO.new <<EOF
-username: config_file@config_file.com
-password: config_file_secret
-organization: config_file_org
-EOF
-end

@@ -6,8 +6,10 @@
 
 module Leadtune
   class Util
+
+    # File merb/core_ext/hash.rb, line 87, with slight tweaks
+
     def self.to_params(hash)
-      # File merb/core_ext/hash.rb, line 87, with slight tweaks
       params = ''
       stack = []
 
@@ -31,11 +33,6 @@ module Leadtune
 
       params.chop! # trailing &
       params
-    end
-
-    # stolen from ActiveSupport, with slight tweaks
-    def self.extract_options!(args)
-      args.last.is_a?(::Hash) ? args.pop : {}
     end
   end
 end

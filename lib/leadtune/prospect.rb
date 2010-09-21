@@ -29,18 +29,13 @@ module Leadtune
   class Prospect
     attr_accessor :decision  #:nodoc:
 
-    # Initialize a new Leadtune::Prospect object.  
-    #
-    # [+config_file+] An optional filename or a file-like object
-    # [+factors+]     A hash of factors with which to initialize the Prospect
-
-    def initialize(*args, &block)
+    def initialize(options_and_factors={}, &block)
       @factors = {}
       @decision = nil
-      @config = Config.new(args.first)
+      @config = Config.new
       @rest = Rest.new(@config)
 
-      load_options_and_factors(Leadtune::Util.extract_options!(args))
+      load_options_and_factors(options_and_factors)
       block.call(self) if block_given?
     end
 
@@ -48,24 +43,24 @@ module Leadtune
     #
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
-    def self.get(options={}, &block)
-      new(options, &block).get
+    def self.get(options_and_factors={}, &block)
+      new(options_and_factors, &block).get
     end
 
     # Post a prospect to the LeadTune Appraiser service.
     #
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
-    def self.post(options={}, &block)
-      new(options, &block).post
+    def self.post(options_and_factors={}, &block)
+      new(options_and_factors, &block).post
     end
 
     # Update a prospect from the LeadTune Appraiser service.
     #
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
 
-    def self.put(options={}, &block)
-      new(options, &block).put
+    def self.put(options_and_factors={}, &block)
+      new(options_and_factors, &block).put
     end
 
     # Get a prospect from the LeadTune Appraiser service.
@@ -159,6 +154,14 @@ module Leadtune
       @config.leadtune_host
     end
 
+    def timeout=(timeout) #:nodoc:
+      @config.timeout = timeout
+    end
+
+    def timeout #:nodoc:
+      @config.timeout
+    end
+
     def username=(username)
       @config.username = username
     end
@@ -167,18 +170,18 @@ module Leadtune
       @config.password = password
     end
 
-    def response
+    def response #:nodoc:
       @rest.response
     end
 
-    def payload
+    def payload #:nodoc:
       post_data.reject {|k,v| CURL_OPTIONS.include?(k)}
     end
 
 
     private 
 
-    CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",]
+    CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",] #:nodoc:
 
     def post_data #:nodoc:
       @factors.merge("decision" => @decision, 

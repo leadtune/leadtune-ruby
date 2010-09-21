@@ -14,93 +14,34 @@ describe Leadtune::Rest do
 
   subject {Leadtune::Rest.new(Leadtune::Config.new)}
 
-  context("w/ username & password from config_file") do
-
-    subject {Leadtune::Rest.new(rest_config)}
+  context("w/ username and password from initializer") do
 
     before(:each) do
       @curl_easy = null_curl_easy
+      setup_initializer
+    end
+
+    after(:each) do
+      teardown_initializer
     end
 
     describe "#username" do
-      it "uses the config_file value" do
-        @curl_easy.should_receive(:username=).with("config@config.com")
+      it "uses the initializer value" do
+        @curl_easy.should_receive(:username=).with("init_user")
 
         subject.get(mock_post_data)
       end
     end
 
     describe "#password" do
-      it "uses the config_file value" do
-        @curl_easy.should_receive(:password=).with("config_secret")
+      it "uses the initializer value" do
+        @curl_easy.should_receive(:password=).with("init_secret")
 
         subject.get(mock_post_data)
       end
     end
   end
 
-  context("w/ username & password from ENV") do
-    before(:all) do
-      setup_leadtune_env
-    end
-
-    after(:all) do
-      teardown_leadtune_env
-    end
-
-    before(:each) do
-      @curl_easy = null_curl_easy
-    end
-
-    describe "#username" do
-      it "uses the ENV value" do
-        @curl_easy.should_receive(:username=).with("env@env.com")
-        
-        subject.get(mock_post_data)
-      end
-    end
-
-    describe "#password" do
-      it "uses the ENV value" do
-        @curl_easy.should_receive(:password=).with("env_secret")
-        
-        subject.get(mock_post_data)
-      end
-    end
-  end
-
-  context("w/ username & password from ENV *AND* config_file") do
-
-    subject {Leadtune::Rest.new(rest_config)}
-
-    before(:all) do
-      setup_leadtune_env
-    end
-
-    after(:all) do
-      teardown_leadtune_env
-    end
-
-    before(:each) do
-      @curl_easy = null_curl_easy
-    end
-
-    describe "#username" do
-      it "uses the ENV value over the config file" do
-        @curl_easy.should_receive(:username=).with("env@env.com")
-
-        subject.get(mock_post_data)
-      end
-    end
-
-    describe "#password" do
-      it "uses the ENV value over the config file" do
-        @curl_easy.should_receive(:password=).with("env_secret")
-
-        subject.get(mock_post_data)
-      end
-    end
-  end
 
   describe "#post (slow)" do
 
@@ -123,12 +64,6 @@ describe Leadtune::Rest do
       @curl_easy = null_curl_easy
     end
 
-    it "is passed on to Curl::Easy" do
-      @curl_easy.should_receive(:timeout=).with(5)
-
-      subject.get(mock_post_data)
-    end
-
     context("by default") do
       it "is 5" do
         @curl_easy.should_receive(:timeout=).with(5)
@@ -137,24 +72,14 @@ describe Leadtune::Rest do
       end
     end
 
-    context("with timeout of 6 in ENV value") do
-      before(:all) do
-        ENV["LEADTUNE_TIMEOUT"] = "6"
+    context("with timeout of 7 in initializer") do
+      before(:each) do
+        setup_initializer
       end
 
-      after(:all) do
-        ENV.delete("LEADTUNE_TIMEOUT")
+      after(:each) do
+        teardown_initializer
       end
-
-      it "is 6" do
-        @curl_easy.should_receive(:timeout=).with(6)
-
-        subject.get(mock_post_data)
-      end
-    end
-
-    context("with timeout of 7 in config_file") do
-      subject {Leadtune::Rest.new(rest_config)}
 
       it "is 7" do
         @curl_easy.should_receive(:timeout=).with(7)
@@ -197,15 +122,6 @@ describe Leadtune::Rest do
     curl_easy = double(Curl::Easy, :body_str => "{}").as_null_object
     Curl::Easy.stub!(:new).and_yield(curl_easy).and_return(curl_easy)
     curl_easy
-  end
-
-  def rest_config
-    config_file = StringIO.new <<EOF
-username: config@config.com
-password: config_secret
-timeout: 7
-EOF
-    Leadtune::Config.new(config_file)
   end
 
   def mock_server(code, &block)

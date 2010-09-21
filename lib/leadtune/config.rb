@@ -16,10 +16,6 @@ module Leadtune
     @@organization = nil
     @@timeout = nil
 
-    def initialize(config_file=nil)
-      load_config_file_values(config_file)
-    end
-
     def self.username=(username)
       @@username = username
     end
@@ -37,32 +33,27 @@ module Leadtune
     end
 
     def self.timeout=(timeout)
-      @@timeout = timeout.to_i
+      @@timeout = timeout
     end
 
     def username
-      @username ||= @@username || ENV["LEADTUNE_USERNAME"] || @config_file_values["username"]
+      @username ||= @@username
     end
 
     def password
-      @password ||= @@password || ENV["LEADTUNE_PASSWORD"] || @config_file_values["password"]
+      @password ||= @@password
     end
 
     def timeout
-      @timeout ||= (@@timeout ||
-                    ENV["LEADTUNE_TIMEOUT"] || 
-                    @config_file_values["timeout"] || 
-                    DEFAULT_TIMEOUT).to_i
+      @timeout ||= @@timeout || DEFAULT_TIMEOUT
     end
 
     def organization
-      @@organization || ENV["LEADTUNE_ORGANIZATION"] || @config_file_values["organization"]
+      @@organization
     end
 
     def leadtune_host
-      @leadtune_host ||= (ENV["LEADTUNE_HOST"] || 
-                          @config_file_values["host"] ||
-                          LEADTUNE_HOSTS[environment])
+      @leadtune_host ||= @@leadtune_host || LEADTUNE_HOSTS[environment]
     end
 
     def environment
@@ -82,28 +73,6 @@ module Leadtune
 
 
     private
-
-    def load_config_file_values(config_file)
-      @config_file_values = {}
-
-      find_config_file(config_file) do |config_file|
-        @config_file_values = YAML::load(config_file)
-      end
-    end
-
-    def find_config_file(config_file)
-      case config_file
-      when String
-        yield File.open(config_file)
-      when File, StringIO
-        yield config_file
-      when nil
-        if File.exist?("leadtune.yml")
-          yield File.open("leadtune.yml") 
-        end
-      end
-    end
-
 
     DEFAULT_TIMEOUT = 5
     LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze 

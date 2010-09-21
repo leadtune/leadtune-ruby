@@ -15,18 +15,8 @@ describe Leadtune::Prospect do
                             "email" => "bar@baz.com",
                             "target_buyers" => ["AcmeU", "Bravo", "ConvU",],
                             "event" => "offers_prepared",}) do |p|
-      # use ||= so we won't override if loaded from ENV or config_file
+      # use ||= so we won't override if loaded from initializer
       p.organization ||= "Foo"
-    end
-  end
-
-  context("w/ organization from config_file") do
-    subject do
-      Leadtune::Prospect.new(leadtune_config_file)
-    end
-
-    describe "#organization" do
-      specify {subject.organization.should == "config_file_org"}
     end
   end
 
@@ -43,41 +33,6 @@ describe Leadtune::Prospect do
     end
   end
   
-  context("w/ organization from ENV") do
-    before(:all) do
-      setup_leadtune_env
-    end
-
-    after(:all) do
-      teardown_leadtune_env
-    end
-
-    subject {Leadtune::Prospect.new}
-    
-    describe "#organization" do
-      specify {subject.organization.should == "env_org"}
-    end
-  end
-
-  context("w/ organization from ENV *AND* config_file") do
-
-    before(:all) do
-      setup_leadtune_env
-    end
-
-    after(:all) do
-      teardown_leadtune_env
-    end
-
-    subject {Leadtune::Prospect.new(leadtune_config_file)}
-
-    describe "#organization" do
-      it "uses the ENV value over the config file" do
-        subject.organization.should == "env_org"
-      end
-    end
-  end
-
   describe "#get" do
     before(:each) do
       stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
@@ -114,13 +69,6 @@ describe Leadtune::Prospect do
 
       s.channel.should == "banner"
     end
-
-    it "accepts a config_file as its (optional) first argument" do
-      s = Leadtune::Prospect.new(leadtune_config_file, {:channel => "banner",})
-
-      s.channel.should == "banner"
-      s.organization.should == "config_file_org"
-    end
   end
 
   describe("#target_buyers=") do
@@ -134,6 +82,17 @@ describe Leadtune::Prospect do
     it "raises ArgumentError when called with a non-Array" do
       lambda {subject.target_buyers = "foo"}.should raise_error(ArgumentError)
     end
+  end
+
+  context("w/ organization from initializer") do
+    before(:each) {setup_initializer}
+    after(:each) {teardown_initializer}
+
+    describe("#organization") do
+      it "uses the initializer value" do
+        subject.organization.should == "init_org"
+      end
+    end        
   end
 
 

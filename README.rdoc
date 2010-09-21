@@ -19,26 +19,6 @@ detailed below.  Available configuration values include:
 * password
 * organization
 
-=== Configuration File
-
-The configuration file can be specified when calling Prospect#new.  If no
-file is specified, the gem will also look for +leadtune.yml+ in the
-current directory.
-
-==== Format
-
-The configuration file is a YAML file, an example of which is:
- username: me@mycorp.com
- password: my_secret
- organization: MYC
-
-=== Environment Variables
-
-Your LeadTune username, password, and organization can be specified in the
-+LEADTUNE_USERNAME+, +LEADTUNE_PASSWORD+, and +LEADTUNE_ORGANIZATION+
-environment variables. <em>These values take precedence over values read
-from the configuration file.</em>
-
 === Rack Initializer
 
  # config/initializers/leadtune.rb
@@ -46,23 +26,19 @@ from the configuration file.</em>
  Leadtune::Config.password = "my_secret"
  Leadtune::Config.organization = "MYC"
 
-<em>These values take precedence over values read from environment variables
-or configuration file.</em>
-
 === Factors Hash
 
 When initializing your Leadtune::Prospect, you can include your username,
 password, and organization along with any factors you wish to
-submit. <em>These values take precedence over values read from rack
-initializers, environment variables, or the configuration file.</em>
+submit. <em>These values take precedence over values read from the rack
+initializer.</em>
 
 === Instance Methods
 
 You can also set your username, password, and organization by calling the
 Leadtune::Prospect object's #username=, #password=, and #organization=
 methods. <em>These values take precedence over values read from the factors
-hash, rack initializers, environment variables, or the configuration
-file.</em>
+hash and the rack initializer.</em>
 
 == Example Usage
 
@@ -97,9 +73,9 @@ An attempt was made to allow for an ActiveModel-like interface.
  ... and so on
  prospect.post
 
-== Automatic Environment Determination
+== Automatic Environment Detection
 
-At initialization, an attempt is made to determine your application's current
+At initialization, an attempt is made to detect your application's current
 environment.  If a rack or rails production environment is detected, prospects
 will be posted to LeadTune's production host.  Otherwise prospects will be
 posted to LeadTune's sandbox host.  The application environment can be
