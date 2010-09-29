@@ -10,20 +10,18 @@ require "rubygems"
 require "pp"
 require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
-
 begin
-  p = Leadtune::Prospect.new do |p|
-    p.organization = "AcmeU"
-    p.username = "admin@acme.edu"
-    p.password = "admin"
-    # p.leadtune_host = "http://localhost:8080"
-    p.prospect_ref = "CRONIN"
-  end
-
-  p.get
+  p = Leadtune::Prospect.get({
+    :organization => "AcmeU",
+    :username => "admin@acme.edu",
+    :password => "admin",
+    # :leadtune_host => "http://localhost:8080",
+    :prospect_ref => "CRONIN",
+    # :prospect_id => "4ca3bae9a09801dd413d445c",
+  })
   pp p.factors
 
-  pp Leadtune::Prospect.new({:prospect_id => "4c92f8d6b34601dd5ecac030",
+  pp Leadtune::Prospect.new({:prospect_id => "4ca3bd94a09801dd5b3d445c",
                              :username => "admin@acme.edu",
                              :password => "admin",
                              :organization => "AcmeU",}).get.factors

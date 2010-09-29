@@ -10,7 +10,7 @@ require "spec_helper"
 
 describe Leadtune::Prospect do
 
-  subject do 
+  subject do
     Leadtune::Prospect.new({"prospect_id" => "deadfish",
                             "email" => "bar@baz.com",
                             "target_buyers" => ["AcmeU", "Bravo", "ConvU",],
@@ -32,7 +32,7 @@ describe Leadtune::Prospect do
       subject.my_new_factor.should == 5
     end
   end
-  
+
   describe "#get" do
     before(:each) do
       stub_request(:any, /.*leadtune.*/).to_return(:body => fake_curb_response)
@@ -92,7 +92,24 @@ describe Leadtune::Prospect do
       it "uses the initializer value" do
         subject.organization.should == "init_org"
       end
-    end        
+    end
+  end
+
+  describe("#organization") do
+    before(:each) {setup_initializer}
+    after(:each) {teardown_initializer}
+
+    it "reads first from factors" do
+      subject.organization = "funky_chicken"
+
+      subject.organization.should == "funky_chicken"
+    end
+
+    it "falls back to @config if not in factors" do
+      subject.organization = nil
+
+      subject.organization.should == "init_org"
+    end
   end
 
 

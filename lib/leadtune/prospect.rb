@@ -17,7 +17,7 @@ module Leadtune
 
   # Simplify the process of submitting prospects to LeadTune for duplicate
   # checking and appraisal.
-  # 
+  #
   # For details about the LeadTune API, see: http://leadtune.com/api
   #
   # == Dynamic Factor Access
@@ -105,14 +105,14 @@ module Leadtune
     # The Array returned has been extended to include two methods,
     # +duplicates+ and +non_duplicates+.  Each returns the appraisals of the
     # target_buyers for whom this lead is or is not a known duplicate.
-    
+
     def appraisals
       @decision ||= {}
       @decision["appraisals"]
     end
 
     # Return a hash of the factors specified for this Prospect.
-    
+
     def factors
       @factors
     end
@@ -137,7 +137,7 @@ module Leadtune
     def organization #:nodoc:
       @factors["organization"] || @config.organization
     end
-    
+
     def prospect_id #:nodoc:
       @factors["prospect_id"]
     end
@@ -179,13 +179,13 @@ module Leadtune
     end
 
 
-    private 
+    private
 
     CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",] #:nodoc:
 
     def post_data #:nodoc:
-      @factors.merge("decision" => @decision, 
-                     "organization" => @config.organization)
+      @factors.merge("decision" => @decision,
+                     "organization" => organization)
     end
 
     def load_options_and_factors(options) #:nodoc:

@@ -86,7 +86,7 @@ module Leadtune
     def build_get_url #:nodoc:
       params = {:organization => @post_data["organization"],}
       if @post_data["prospect_ref"]
-        params.merge!(:prospect_ref => @post_data["prospect_ref"]) 
+        params.merge!(:prospect_ref => @post_data["prospect_ref"])
       end
 
       URI.join(build_put_url, "?" + Leadtune::Util.to_params(params)).to_s
