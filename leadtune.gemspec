@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = ">= 1.3.6"
 
-  s.add_development_dependency "bundler", ">= 1.0.0" 
+  s.add_development_dependency "bundler", ">= 1.0.0"
   s.add_development_dependency "ruby-debug"
   s.add_development_dependency "rspec", "= 2.0.0.beta.19"
   s.add_development_dependency "rspec-core", "= 2.0.0.beta.19"
@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
   s.add_dependency("curb")
   s.add_dependency("json")
   s.add_dependency("tcpsocket-wait")
-  s.add_dependency("activemodel")
 
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
