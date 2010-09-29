@@ -15,10 +15,8 @@ require 'yaml'
 
 require 'rake/rdoctask'
 require 'rspec/core/rake_task'
-require 'cucumber/rake/task'
 
 RSpec::Core::RakeTask.new
-Cucumber::Rake::Task.new
 Rake::RDocTask.new(:rdoc) do |rd|
   rd.options << "-t LeadTune API Ruby Gem"
   rd.options << "--exclude=Gemfile"
