@@ -4,6 +4,7 @@
 # Eric Wollesen (mailto:devs@leadtune.com)
 # Copyright 2010 LeadTune LLC
 
+require "curb"
 require "json"
 
 module Leadtune
@@ -89,13 +90,15 @@ module Leadtune
         params.merge!(:prospect_ref => @post_data["prospect_ref"])
       end
 
-      URI.join(build_put_url, "?" + Leadtune::Util.to_params(params)).to_s
+      # I would use URI.join, but there's a bug in its implementation in 1.8.6
+      build_put_url + "?" + Leadtune::Util.to_params(params)
     end
 
     def build_put_url #:nodoc:
       path = "/prospects"
       path += "/#{@post_data["prospect_id"]}" if @post_data["prospect_id"]
-      URI.join(@config.leadtune_host, path).to_s
+      # I would use URI.join, but there's a bug in its implementation in 1.8.6
+      @config.leadtune_host + path
     end
 
     def parse_response(body)
