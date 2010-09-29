@@ -27,11 +27,11 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-expectations", "= 2.0.0.beta.19"
   s.add_development_dependency "rspec-mocks", "= 2.0.0.beta.19"
   s.add_development_dependency "webmock"#, "http://github.com/phiggins/webmock.git"
+  s.add_development_dependency("tcpsocket-wait")
 
   s.add_dependency("rake")
   s.add_dependency("curb")
   s.add_dependency("json")
-  s.add_dependency("tcpsocket-wait")
 
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact

@@ -6,25 +6,24 @@
 
 source :gemcutter
 
-unless RUBY_PLATFORM == "java"
-  case RUBY_VERSION
-  when /^1.9.2/
-    gem "ruby-debug19"
-  when /^1.8/
-    gem "ruby-debug"
+group :development do
+  unless RUBY_PLATFORM == "java"
+    case RUBY_VERSION
+    when /^1.9.2/
+      gem "ruby-debug19"
+    when /^1.8/
+      gem "ruby-debug"
+    end
   end
+  gem "rake"
+  gem "rdoc"
+  gem "rspec", "2.0.0.beta.19"
+  gem "rspec-core", "2.0.0.beta.19"
+  gem "rspec-expectations", "2.0.0.beta.19"
+  gem "rspec-mocks"
+  gem "tcpsocket-wait"
+  gem "webmock", :git => "http://github.com/phiggins/webmock.git"
 end
 
-gem "rake"
-gem "cucumber"
-gem "rdoc"
-gem "rspec", "2.0.0.beta.19"
-gem "rspec-core", "2.0.0.beta.19"
-gem "rspec-expectations", "2.0.0.beta.19"
-gem "rspec-mocks"
 gem "json"
 gem "curb"
-gem "tcpsocket-wait"
-gem "webmock", :git => "http://github.com/phiggins/webmock.git"
-gem "tcpsocket-wait"
-
