@@ -10,22 +10,17 @@ require "rubygems"
 require "pp"
 require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
-
 begin
-  p = Leadtune::Prospect.get({:prospect_id => "4c93fda2b34601ddb7d1c030",
-                              :username => "admin@acme.edu",
+  p = Leadtune::Prospect.new({:prospect_id => ARGV[0],
+                              :username => "admin@loleads.com",
                               :password => "admin",
-                              :organization => "AcmeU",})
-  p.browser_family = "Firefox"
+                              :target_buyers => ["AcmeU", "Bravo", "ConvU",],
+                              :organization => "LOL",
+                              :age => rand(30)+18})
   p.leadtune_host = "http://localhost:8080"
   p.put
 
-  p = Leadtune::Prospect.get({:prospect_id => "4c92f8d6b34601dd5ecac030",
-                              :username => "admin@acme.edu",
-                              :password => "admin",
-                              :organization => "AcmeU",})
   pp p.factors
-
 rescue Leadtune::LeadtuneError => e
   puts e.to_s
 end

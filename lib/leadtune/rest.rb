@@ -39,6 +39,13 @@ module Leadtune
       parse_response(curl.body_str)
     end
 
+    def delete(post_data)
+      @post_data = post_data
+      curl = build_curl_easy_object_delete
+      curl.http("DELETE")
+      parse_response(curl.body_str) unless curl.body_str.empty?
+    end
+
 
     private
 
@@ -64,7 +71,7 @@ module Leadtune
 
     def build_curl_easy_object_post #:nodoc:
       build_curl_easy_object do |curl|
-        curl.url = URI.join(@config.leadtune_host, "/prospects").to_s
+        curl.url = build_post_url
         curl.post_body = @post_data.to_json
         $stderr.puts curl.post_body if curl.verbose?
       end
@@ -73,8 +80,13 @@ module Leadtune
     def build_curl_easy_object_put #:nodoc:
       build_curl_easy_object do |curl|
         curl.url = build_put_url
-        curl.put_data = @post_data.to_json
-        $stderr.puts curl.post_body if curl.verbose?
+        curl.post_body = @post_data.to_json
+      end
+    end
+
+    def build_curl_easy_object_delete #:nodoc:
+      build_curl_easy_object do |curl|
+        curl.url = build_get_url
       end
     end
 
@@ -82,6 +94,10 @@ module Leadtune
       build_curl_easy_object do |curl|
         curl.url = build_get_url
       end
+    end
+
+    def build_post_url #:nodoc:
+      URI.join(@config.leadtune_host, "/prospects").to_s
     end
 
     def build_get_url #:nodoc:

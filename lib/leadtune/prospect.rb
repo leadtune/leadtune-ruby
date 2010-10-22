@@ -63,6 +63,14 @@ module Leadtune
       new(options_and_factors, &block).put
     end
 
+    # Delete a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
+
+    def self.delete(options_and_factors={}, &block)
+      new(options_and_factors, &block).delete
+    end
+
     # Get a prospect from the LeadTune Appraiser service.
     #
     # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
@@ -90,6 +98,16 @@ module Leadtune
     def put
       json = @rest.put(post_data)
       parse_response(json)
+      self
+    end
+
+    # Delete a prospect from the LeadTune Appraiser service.
+    #
+    # Raises a Leadtune::LeadtuneError if a non-2XX response is received.
+
+    def delete
+      json = @rest.delete(post_data)
+      parse_response(json) unless json.nil?
       self
     end
 
@@ -184,8 +202,9 @@ module Leadtune
     CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",] #:nodoc:
 
     def post_data #:nodoc:
-      @factors.merge("decision" => @decision,
-                     "organization" => organization)
+      f = @factors.merge("organization" => organization)
+      f.merge!("decision" => @decision) if @decision
+      f
     end
 
     def load_options_and_factors(options) #:nodoc:

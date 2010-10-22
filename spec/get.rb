@@ -12,20 +12,18 @@ require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
 begin
   p = Leadtune::Prospect.get({
-    :organization => "AcmeU",
-    :username => "admin@acme.edu",
+    :organization => "LOL",
+    :username => "admin@loleads.com",
     :password => "admin",
-    # :leadtune_host => "http://localhost:8080",
-    :prospect_ref => "CRONIN",
-    # :prospect_id => "4ca3bae9a09801dd413d445c",
-  })
-  pp p.factors
+    # :leadtune_host => "https://staging-appraiser.leadtune.com",
+    # :leadtune_host => "https://sandbox-appraiser.leadtune.com",
+    :leadtune_host => "http://localhost:8080",
 
-  pp Leadtune::Prospect.new({:prospect_id => "4ca3bd94a09801dd5b3d445c",
-                             :username => "admin@acme.edu",
-                             :password => "admin",
-                             :organization => "AcmeU",}).get.factors
+    :prospect_id => ARGV[0],
+  })
 rescue Leadtune::LeadtuneError => e
   puts e.to_s
+else
+  pp p.factors
 end
 

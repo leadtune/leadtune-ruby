@@ -11,20 +11,13 @@ require "pp"
 require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
 begin
-  p = Leadtune::Prospect.post do |p|
+  p = Leadtune::Prospect.delete do |p|
     p.organization = "LOL"
     p.username = "admin@loleads.com"
     p.password = "admin"
-    # p.leadtune_host = "https://staging-appraiser.leadtune.com"
-    # p.leadtune_host = "https://sandbox-appraiser.leadtune.com"
     p.leadtune_host = "http://localhost:8080"
-
-    p.event = "offers_prepared"
-    p.email = "test@example.com"
-    p.target_buyers = ["AcmeU", "Bravo", "ConvU",]
+    p.prospect_id = ARGV[0]
   end
-  pp p.factors
-  `/bin/echo -n #{p.prospect_id} | pbcopy 2>&1 > /dev/null`
 rescue Leadtune::LeadtuneError => e
   puts e.to_s
 end
