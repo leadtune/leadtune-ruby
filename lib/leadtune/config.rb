@@ -8,20 +8,15 @@ module Leadtune
 
   class Config #:nodoc:all
 
-    attr_accessor :environment, :leadtune_host, :username, :password, :timeout
+    attr_accessor :environment, :leadtune_host, :api_key, :timeout
 
     @@leadtune_host = nil
-    @@username = nil
-    @@password = nil
+    @@api_key = nil
     @@organization = nil
     @@timeout = nil
 
-    def self.username=(username)
-      @@username = username
-    end
-
-    def self.password=(password)
-      @@password = password
+    def self.api_key=(api_key)
+      @@api_key = api_key
     end
 
     def self.organization=(organization)
@@ -36,12 +31,8 @@ module Leadtune
       @@timeout = timeout
     end
 
-    def username
-      @username ||= @@username
-    end
-
-    def password
-      @password ||= @@password
+    def api_key
+      @api_key ||= @@api_key
     end
 
     def timeout
@@ -75,7 +66,7 @@ module Leadtune
     private
 
     DEFAULT_TIMEOUT = 5
-    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze 
+    LEADTUNE_HOST_SANDBOX = "https://sandbox-appraiser.leadtune.com".freeze
     LEADTUNE_HOST_PRODUCTION = "https://appraiser.leadtune.com".freeze
     LEADTUNE_HOSTS = {
       :production => LEADTUNE_HOST_PRODUCTION,

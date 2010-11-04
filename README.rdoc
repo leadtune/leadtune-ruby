@@ -15,30 +15,27 @@ For details about the LeadTune API, see: http://leadtune.com/api
 Authentication credentials can be specified by any of several methods, as
 detailed below.  Available configuration values include:
 
-* username
-* password
+* api_key
 * organization
 
 === Rack Initializer
 
  # config/initializers/leadtune.rb
- Leadtune::Config.username = "me@mycorp.com"
- Leadtune::Config.password = "my_secret"
+ Leadtune::Config.api_key = "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f"
  Leadtune::Config.organization = "MYC"
 
 === Factors Hash
 
-When initializing your Leadtune::Prospect, you can include your username,
-password, and organization along with any factors you wish to
-submit. <em>These values take precedence over values read from the rack
-initializer.</em>
+When initializing your Leadtune::Prospect, you can include your API key and
+organization along with any factors you wish to submit. <em>These values take
+precedence over values read from the rack initializer.</em>
 
 === Instance Methods
 
-You can also set your username, password, and organization by calling the
-Leadtune::Prospect object's #username=, #password=, and #organization=
-methods. <em>These values take precedence over values read from the factors
-hash and the rack initializer.</em>
+You can also set your API key and organization by calling the
+Leadtune::Prospect object's #api_key= and #organization= methods. <em>These
+values take precedence over values read from the factors hash and the rack
+initializer.</em>
 
 == Example Usage
 
@@ -48,8 +45,7 @@ An attempt was made to allow for an ActiveModel-like interface.
  require "leadtune"
 
  prospect = Leadtune::Prospect.post({
-   :username => "admin@loleads.com"        # required (See Leadtune::Config)
-   :password => "secret"                   # required (See Leadtune::Config)
+   :api_key => "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f", # required (See Leadtune::Config)
    :organization => "LOL",                 # required (See Leadtune::Config)
    :event => "offers_prepared",            # required
    :email => "test@example.com"            # required

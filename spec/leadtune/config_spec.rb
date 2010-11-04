@@ -19,16 +19,10 @@ describe Leadtune::Config do
   end
 
   context("can set") do
-    it "password" do
-      Leadtune::Config.password = "secret"
+    it "api_key" do
+      Leadtune::Config.api_key = "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f"
 
-      Leadtune::Config.new.password.should == "secret"
-    end
-
-    it "username" do
-      Leadtune::Config.username = "bob"
-
-      Leadtune::Config.new.username.should == "bob"
+      Leadtune::Config.new.api_key.should == "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f"
     end
 
     it "timeout" do

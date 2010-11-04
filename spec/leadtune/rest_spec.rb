@@ -14,7 +14,7 @@ describe Leadtune::Rest do
 
   subject {Leadtune::Rest.new(Leadtune::Config.new)}
 
-  context("w/ username and password from initializer") do
+  context("w/ api_key from initializer") do
 
     before(:each) do
       @curl_easy = null_curl_easy
@@ -25,21 +25,14 @@ describe Leadtune::Rest do
       teardown_initializer
     end
 
-    describe "#username" do
-      it "uses the initializer value" do
-        @curl_easy.should_receive(:username=).with("init_user")
-
+    describe "#get" do
+      it "uses the initialized API key value" do
         subject.get(mock_post_data)
+
+        @curl_easy.headers.should include("X-API-Key" => "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f")
       end
     end
 
-    describe "#password" do
-      it "uses the initializer value" do
-        @curl_easy.should_receive(:password=).with("init_secret")
-
-        subject.get(mock_post_data)
-      end
-    end
   end
 
 
@@ -134,7 +127,7 @@ describe Leadtune::Rest do
 
       thread = Thread.new(server) {|s| s.start}
 
-      TCPSocket.wait_for_service_with_timeout({:host => "localhost", 
+      TCPSocket.wait_for_service_with_timeout({:host => "localhost",
                                                :port => THREADED_MOCK_SERVER_PORT,
                                                :timeout => 10})
       block.call
@@ -151,7 +144,7 @@ describe Leadtune::Rest do
       old_stderr, $stderr = $stderr, tf
       block.call(tf)
     end
-    
+
     $stdout, $stderr = old_stdout, old_stderr
   end
 

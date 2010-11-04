@@ -13,8 +13,7 @@ require File.join(File.dirname(__FILE__), "../lib/leadtune")
 begin
   p = Leadtune::Prospect.post do |p|
     p.organization = "LOL"
-    p.username = "admin@loleads.com"
-    p.password = "admin"
+    p.api_key = "h5fvNoTFa9AqzxUgixNcGey7HfZNKiBE9pC39fIH"
     # p.leadtune_host = "https://staging-appraiser.leadtune.com"
     # p.leadtune_host = "https://sandbox-appraiser.leadtune.com"
     p.leadtune_host = "http://localhost:8080"

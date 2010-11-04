@@ -15,16 +15,14 @@ RSpec.configure do |config|
 end
 
 def setup_initializer
-  Leadtune::Config.username = "init_user"
-  Leadtune::Config.password = "init_secret"
+  Leadtune::Config.api_key = "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f"
   Leadtune::Config.timeout = 7
   Leadtune::Config.organization = "init_org"
   Leadtune::Config.leadtune_host = "http://localhost.init"
 end
 
 def teardown_initializer
-  Leadtune::Config.username = nil
-  Leadtune::Config.password = nil
+  Leadtune::Config.api_key = nil
   Leadtune::Config.timeout = nil
   Leadtune::Config.organization = nil
   Leadtune::Config.leadtune_host = nil

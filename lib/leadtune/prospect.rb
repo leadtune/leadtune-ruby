@@ -180,12 +180,8 @@ module Leadtune
       @config.timeout
     end
 
-    def username=(username)
-      @config.username = username
-    end
-
-    def password=(password)
-      @config.password = password
+    def api_key=(api_key)
+      @config.api_key = api_key
     end
 
     def response #:nodoc:
@@ -199,7 +195,7 @@ module Leadtune
 
     private
 
-    CURL_OPTIONS = ["username", "password", "timeout", "leadtune_host",] #:nodoc:
+    CURL_OPTIONS = ["api_key", "timeout", "leadtune_host",] #:nodoc:
 
     def post_data #:nodoc:
       f = @factors.merge("organization" => organization)

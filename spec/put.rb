@@ -12,8 +12,7 @@ require File.join(File.dirname(__FILE__), "../lib/leadtune")
 
 begin
   p = Leadtune::Prospect.new({:prospect_id => ARGV[0],
-                              :username => "admin@loleads.com",
-                              :password => "admin",
+                              :api_key => "h5fvNoTFa9AqzxUgixNcGey7HfZNKiBE9pC39fIH",
                               :target_buyers => ["AcmeU", "Bravo", "ConvU",],
                               :organization => "LOL",
                               :age => rand(30)+18})

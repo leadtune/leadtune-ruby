@@ -52,8 +52,6 @@ module Leadtune
     def build_curl_easy_object(&block) #:nodoc:
       Curl::Easy.new do |curl|
         curl.http_auth_types = [:basic,]
-        curl.username = @config.username
-        curl.password = @config.password
         curl.timeout = @config.timeout
         curl.headers = default_headers
         curl.on_failure do |curl, code|
@@ -66,7 +64,8 @@ module Leadtune
 
     def default_headers #:nodoc:
       {"Content-Type" => "application/json",
-       "Accept" => "application/json",}
+       "Accept" => "application/json",
+       "X-API-Key" => @config.api_key,}
     end
 
     def build_curl_easy_object_post #:nodoc:

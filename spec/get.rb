@@ -13,8 +13,7 @@ require File.join(File.dirname(__FILE__), "../lib/leadtune")
 begin
   p = Leadtune::Prospect.get({
     :organization => "LOL",
-    :username => "admin@loleads.com",
-    :password => "admin",
+    :api_key => "h5fvNoTFa9AqzxUgixNcGey7HfZNKiBE9pC39fIH",
     # :leadtune_host => "https://staging-appraiser.leadtune.com",
     # :leadtune_host => "https://sandbox-appraiser.leadtune.com",
     :leadtune_host => "http://localhost:8080",
