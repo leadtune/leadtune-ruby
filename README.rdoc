@@ -48,8 +48,8 @@ An attempt was made to allow for an ActiveModel-like interface.
    :api_key => "DeadB33fDeadB33fDeadB33fDeadB33fDeadB33f", # required (See Leadtune::Config)
    :organization => "LOL",                 # required (See Leadtune::Config)
    :event => "offers_prepared",            # required
-   :email => "test@example.com"            # required
-   :target_buyers => ["TB-LOL", "AcmeU",]  # required
+   :email => "test@example.com",           # required
+   :target_buyers => ["TB-LOL", "AcmeU"],  # required
    # ... include optional factors here, see http://leadtune.com/factors for details
  })
 
