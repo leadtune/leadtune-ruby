@@ -7,13 +7,13 @@
 module Leadtune
 
   class Config #:nodoc:all
-
-    attr_accessor :environment, :leadtune_host, :api_key, :timeout
+    attr_accessor :environment, :leadtune_host, :api_key, :timeout, :query_params
 
     @@leadtune_host = nil
     @@api_key = nil
     @@organization = nil
     @@timeout = nil
+    @@query_params = nil
 
     def self.api_key=(api_key)
       @@api_key = api_key
@@ -31,12 +31,20 @@ module Leadtune
       @@timeout = timeout
     end
 
+    def self.query_params=(query_params)
+      @@query_params = query_params
+    end
+
     def api_key
       @api_key ||= @@api_key
     end
 
     def timeout
       @timeout ||= @@timeout || DEFAULT_TIMEOUT
+    end
+
+    def query_params
+      @query_params ||= @@query_params
     end
 
     def organization

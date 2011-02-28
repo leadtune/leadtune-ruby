@@ -57,7 +57,7 @@ An attempt was made to allow for an ActiveModel-like interface.
 
  prospect = Leadtune::Prospect.post do |p|
    p.event = "offers_prepared"
-   p.email = "test@example.com"   
+   p.email = "test@example.com"
    ... and so on
  end
 
@@ -65,7 +65,7 @@ An attempt was made to allow for an ActiveModel-like interface.
 
  prospect = Leadtune::Prospect.new
  prospect.event = "offers_prepared"
- prosepct.email = "test@example.com"   
+ prospect.email = "test@example.com"   
  ... and so on
  prospect.post
 

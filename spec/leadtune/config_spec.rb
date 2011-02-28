@@ -42,5 +42,11 @@ describe Leadtune::Config do
 
       Leadtune::Config.new.leadtune_host.should == "http://bad_url_for_test"
     end
+
+    it "query_params" do
+      Leadtune::Config.query_params = {"foo" => "bar"}
+
+      Leadtune::Config.new.query_params.should ==  {"foo" => "bar"}
+    end
   end
 end
