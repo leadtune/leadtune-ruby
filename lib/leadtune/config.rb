@@ -63,7 +63,7 @@ module Leadtune
       if ENV.include?("APP_ENV")
         "production" == ENV["APP_ENV"]
       else
-        defined?(Rails) && Rails.env.production? ||
+        defined?(Rails) && "production" == Rails.env ||
           "production" == ENV["RACK_ENV"] ||
           "production" == ENV["RAILS_ENV"] ||
           defined?(RAILS_ENV) && "production" == RAILS_ENV
